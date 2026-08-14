@@ -1,7 +1,6 @@
-import bcrypt from "bcryptjs";
-import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import { bcrypt, Database } from "./_load-deps.mjs";
 
 const username = process.argv[2];
 const password = process.argv[3];
