@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const db = getDb();
+    const db = await getDb();
     const normalized = username.trim().toLowerCase();
 
     const existing = db

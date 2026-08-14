@@ -3,8 +3,8 @@ import { TOTAL_STAMPS } from "./constants";
 
 export { TOTAL_STAMPS };
 
-export function addStampToUser(userId: number) {
-  const db = getDb();
+export async function addStampToUser(userId: number) {
+  const db = await getDb();
 
   const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
   if (!user) {
@@ -35,7 +35,7 @@ export function addStampToUser(userId: number) {
   };
 }
 
-export function getUserByStampToken(token: string) {
-  const db = getDb();
+export async function getUserByStampToken(token: string) {
+  const db = await getDb();
   return db.prepare("SELECT * FROM users WHERE stamp_token = ?").get(token) as User | undefined;
 }

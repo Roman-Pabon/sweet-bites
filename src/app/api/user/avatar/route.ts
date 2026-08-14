@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     }
 
     const avatarUrl = `/api/avatar-image/${session.userId}?t=${Date.now()}`;
-    const db = getDb();
+    const db = await getDb();
     db.prepare("UPDATE users SET avatar_url = ? WHERE id = ?").run(avatarUrl, session.userId);
 
     return NextResponse.json({ avatarUrl });

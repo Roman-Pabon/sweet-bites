@@ -1,70 +1,161 @@
-import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
+import initSqlJs, { type Database as SqlJsDatabase, type SqlValue } from "sql.js";
 import { getDbPath } from "./paths";
 import { generateStampToken } from "./tokens";
 
+type BindParams = SqlValue[];
+
+class Statement {
+  constructor(
+    private db: SqlJsDatabase,
+    private sql: string,
+    private persist: () => void
+  ) {}
+
+  get(...params: BindParams) {
+    const stmt = this.db.prepare(this.sql);
+    stmt.bind(params);
+    if (stmt.step()) {
+      const row = stmt.getAsObject() as Record<string, SqlValue>;
+      stmt.free();
+      return row;
+    }
+    stmt.free();
+    return undefined;
+  }
+
+  all(...params: BindParams) {
+    const stmt = this.db.prepare(this.sql);
+    stmt.bind(params);
+    const rows: Record<string, SqlValue>[] = [];
+    while (stmt.step()) {
+      rows.push(stmt.getAsObject() as Record<string, SqlValue>);
+    }
+    stmt.free();
+    return rows;
+  }
+
+  run(...params: BindParams) {
+    this.db.run(this.sql, params);
+    const result = this.db.exec("SELECT last_insert_rowid() AS id");
+    const lastInsertRowid = Number(result[0]?.values[0]?.[0] ?? 0);
+    this.persist();
+    return { lastInsertRowid };
+  }
+}
+
+export class SqliteDatabase {
+  constructor(
+    private db: SqlJsDatabase,
+    private dbPath: string
+  ) {}
+
+  persist() {
+    const data = this.db.export();
+    fs.writeFileSync(this.dbPath, Buffer.from(data));
+  }
+
+  prepare(sql: string) {
+    return new Statement(this.db, sql, () => this.persist());
+  }
+
+  exec(sql: string) {
+    this.db.exec(sql);
+    this.persist();
+  }
+
+  pragma(cmd: string) {
+    this.db.run(`PRAGMA ${cmd}`);
+  }
+}
+
 const dbPath = getDbPath();
+let db: SqliteDatabase | null = null;
+let initPromise: Promise<void> | null = null;
 
-let db: Database.Database | null = null;
+function wasmPath(file: string) {
+  return path.join(process.cwd(), "node_modules/sql.js/dist", file);
+}
 
-export function getDb() {
-  if (!db) {
+function bootstrapSchema(database: SqliteDatabase) {
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      stamps INTEGER NOT NULL DEFAULT 0,
+      rewards INTEGER NOT NULL DEFAULT 0,
+      avatar_url TEXT,
+      stamp_token TEXT UNIQUE,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS admins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+  `);
+
+  const columns = database
+    .prepare("PRAGMA table_info(users)")
+    .all() as { name: string }[];
+
+  if (!columns.some((c) => c.name === "avatar_url")) {
+    database.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT");
+  }
+  if (!columns.some((c) => c.name === "stamp_token")) {
+    database.exec("ALTER TABLE users ADD COLUMN stamp_token TEXT");
+  }
+
+  database.exec(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_stamp_token ON users(stamp_token) WHERE stamp_token IS NOT NULL"
+  );
+
+  const usersWithoutToken = database
+    .prepare("SELECT id FROM users WHERE stamp_token IS NULL")
+    .all() as { id: number }[];
+
+  const updateToken = database.prepare("UPDATE users SET stamp_token = ? WHERE id = ?");
+  for (const u of usersWithoutToken) {
+    updateToken.run(generateStampToken(), u.id);
+  }
+}
+
+export async function initDb() {
+  if (db) return;
+  if (initPromise) {
+    await initPromise;
+    return;
+  }
+
+  initPromise = (async () => {
     const dir = path.dirname(dbPath);
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    db = new Database(dbPath);
-    db.pragma("journal_mode = WAL");
+    const SQL = await initSqlJs({ locateFile: wasmPath });
 
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        stamps INTEGER NOT NULL DEFAULT 0,
-        rewards INTEGER NOT NULL DEFAULT 0,
-        avatar_url TEXT,
-        stamp_token TEXT UNIQUE,
-        created_at TEXT NOT NULL DEFAULT (datetime('now'))
-      );
-
-      CREATE TABLE IF NOT EXISTS admins (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        created_at TEXT NOT NULL DEFAULT (datetime('now'))
-      );
-    `);
-
-    const columns = db
-      .prepare("PRAGMA table_info(users)")
-      .all() as { name: string }[];
-
-    if (!columns.some((c) => c.name === "avatar_url")) {
-      db.exec("ALTER TABLE users ADD COLUMN avatar_url TEXT");
-    }
-    if (!columns.some((c) => c.name === "stamp_token")) {
-      db.exec("ALTER TABLE users ADD COLUMN stamp_token TEXT");
+    let rawDb: SqlJsDatabase;
+    if (fs.existsSync(dbPath)) {
+      rawDb = new SQL.Database(fs.readFileSync(dbPath));
+    } else {
+      rawDb = new SQL.Database();
     }
 
-    db.exec(
-      "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_stamp_token ON users(stamp_token) WHERE stamp_token IS NOT NULL"
-    );
+    db = new SqliteDatabase(rawDb, dbPath);
+    bootstrapSchema(db);
+  })();
 
-    // Assign tokens to existing users without one
-    const usersWithoutToken = db
-      .prepare("SELECT id FROM users WHERE stamp_token IS NULL")
-      .all() as { id: number }[];
+  await initPromise;
+}
 
-    const updateToken = db.prepare("UPDATE users SET stamp_token = ? WHERE id = ?");
-    for (const u of usersWithoutToken) {
-      updateToken.run(generateStampToken(), u.id);
-    }
-  }
-
-  return db;
+export async function getDb() {
+  await initDb();
+  return db!;
 }
 
 export type User = {

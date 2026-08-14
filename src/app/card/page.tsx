@@ -11,7 +11,7 @@ export default async function CardPage() {
     redirect("/");
   }
 
-  const db = getDb();
+  const db = await getDb();
   const user = db
     .prepare("SELECT * FROM users WHERE id = ?")
     .get(session.userId) as User | undefined;
@@ -23,7 +23,7 @@ export default async function CardPage() {
   let stampToken = user.stamp_token;
   if (!stampToken) {
     stampToken = generateStampToken();
-    getDb().prepare("UPDATE users SET stamp_token = ? WHERE id = ?").run(stampToken, user.id);
+    (await getDb()).prepare("UPDATE users SET stamp_token = ? WHERE id = ?").run(stampToken, user.id);
   }
 
   const stampUrl = getStampUrl(stampToken);

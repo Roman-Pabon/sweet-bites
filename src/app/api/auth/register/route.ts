@@ -29,7 +29,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const db = getDb();
+    const db = await getDb();
     const existing = db
       .prepare("SELECT id FROM users WHERE username = ?")
       .get(username.trim().toLowerCase());

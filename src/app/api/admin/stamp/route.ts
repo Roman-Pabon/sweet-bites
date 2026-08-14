@@ -14,12 +14,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Token inválido" }, { status: 400 });
     }
 
-    const user = getUserByStampToken(token);
+    const user = await getUserByStampToken(token);
     if (!user) {
       return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 });
     }
 
-    const result = addStampToUser(user.id);
+    const result = await addStampToUser(user.id);
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

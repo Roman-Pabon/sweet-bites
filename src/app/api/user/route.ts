@@ -8,7 +8,7 @@ export async function GET() {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
 
-  const db = getDb();
+  const db = await getDb();
   const user = db
     .prepare("SELECT * FROM users WHERE id = ?")
     .get(session.userId) as User | undefined;

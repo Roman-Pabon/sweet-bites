@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const db = getDb();
+    const db = await getDb();
     const user = db
       .prepare("SELECT * FROM users WHERE username = ?")
       .get(username.trim().toLowerCase()) as User | undefined;

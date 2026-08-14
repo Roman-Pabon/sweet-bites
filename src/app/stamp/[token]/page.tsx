@@ -12,7 +12,7 @@ type Props = {
 
 export default async function StampPage({ params }: Props) {
   const { token } = await params;
-  const user = getUserByStampToken(token);
+  const user = await getUserByStampToken(token);
 
   if (!user) {
     notFound();
