@@ -28,13 +28,15 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/scripts ./scripts
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules_admin
+COPY docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN mkdir -p /app/data/uploads/avatars \
-  && chown -R nextjs:nodejs /app/data
+  && chown -R nextjs:nodejs /app/data \
+  && chmod +x /docker-entrypoint.sh
 
-USER nextjs
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["node", "server.js"]
