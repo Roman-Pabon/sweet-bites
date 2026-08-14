@@ -86,13 +86,26 @@ Guarda. Railway redeployará solo.
 
 ## Paso 6: Crear el admin (vendedores)
 
-En Railway → servicio → pestaña **Settings** → al final, **One-off command** o abre la **terminal** del servicio y ejecuta:
+La consola de Railway suele fallar con SQLite (`Segmentation fault`). Usa este método:
+
+1. En Railway → **Variables**, añade:
+   - `SETUP_SECRET` = una contraseña larga solo para setup (ej. `SetupSweet2026!`)
+
+2. Espera el redeploy.
+
+3. Desde tu PC (PowerShell), ejecuta (cambia la URL y el secret):
+
+```powershell
+Invoke-RestMethod -Method POST -Uri "https://TU-URL.up.railway.app/api/setup/admin" -ContentType "application/json" -Body '{"setupSecret":"SetupSweet2026!","username":"admin1","password":"TuContraseña"}'
+```
+
+Si sale `success: true`, el admin está creado.
+
+**Alternativa (terminal de Railway):** si no da error:
 
 ```bash
 npm run create-admin -- admin TuContraseñaSegura
 ```
-
-Cambia `admin` y la contraseña por lo que quieras. Los vendedores usarán esto para marcar galletas al escanear el QR.
 
 ---
 
