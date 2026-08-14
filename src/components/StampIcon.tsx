@@ -1,6 +1,7 @@
 type StampIconProps = {
   filled: boolean;
   index?: number;
+  justFilled?: boolean;
 };
 
 const NAVY = "#1E2430";
@@ -143,7 +144,15 @@ function ChipShape({ chip, filled }: { chip: Chip; filled: boolean }) {
   );
 }
 
-function CookieShape({ filled, index }: { filled: boolean; index: number }) {
+function CookieShape({
+  filled,
+  index,
+  showBite,
+}: {
+  filled: boolean;
+  index: number;
+  showBite?: boolean;
+}) {
   const cookiePath = COOKIE_PATHS[index % 3];
   const chips = CHIP_SETS[index % CHIP_SETS.length];
   const uid = `c${index}`;
@@ -200,22 +209,45 @@ function CookieShape({ filled, index }: { filled: boolean; index: number }) {
         {!filled && chips.slice(0, 6).map((chip, i) => (
           <ChipShape key={i} chip={chip} filled={false} />
         ))}
+
+        {filled && showBite && (
+          <g className="cookie-bite-mark">
+            <circle cx="46" cy="18" r="9" fill="var(--sweet-gold-light)" />
+            <circle cx="44" cy="16" r="6" fill="#F0E6C8" opacity="0.9" />
+            <path
+              d="M38 14 Q44 10 50 14"
+              fill="none"
+              stroke="#C8842A"
+              strokeWidth="1.2"
+              strokeLinecap="round"
+              opacity="0.6"
+            />
+          </g>
+        )}
       </g>
     </svg>
   );
 }
 
-export function StampIcon({ filled, index = 0 }: StampIconProps) {
+export function StampIcon({ filled, index = 0, justFilled = false }: StampIconProps) {
   return (
     <div
-      className={`stamp-slot ${filled ? "stamp-slot--filled" : ""}`}
+      className={`stamp-slot ${filled ? "stamp-slot--filled" : ""} ${
+        justFilled ? "stamp-slot--just-filled" : ""
+      }`}
       style={{ animationDelay: `${0.55 + index * 0.05}s` }}
     >
       <div
-        className={filled ? "stamp-cookie stamp-cookie--filled" : "stamp-cookie"}
+        className={
+          filled
+            ? justFilled
+              ? "stamp-cookie stamp-cookie--just-filled"
+              : "stamp-cookie stamp-cookie--filled"
+            : "stamp-cookie"
+        }
         style={{ animationDelay: `${0.6 + index * 0.05}s` }}
       >
-        <CookieShape filled={filled} index={index} />
+        <CookieShape filled={filled} index={index} showBite={filled && justFilled} />
       </div>
     </div>
   );

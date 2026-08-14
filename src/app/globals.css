@@ -88,6 +88,80 @@ body {
   animation: stamp-filled-bounce 0.55s cubic-bezier(0.34, 1.5, 0.64, 1) both;
 }
 
+.stamp-cookie--just-filled {
+  animation: stamp-bite-in 0.85s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+
+.stamp-slot--just-filled {
+  z-index: 2;
+}
+
+.cookie-bite-mark {
+  animation: bite-mark-appear 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 0.35s both;
+  transform-origin: 46px 18px;
+}
+
+.stamps-remaining--updated {
+  animation: count-pop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+.stamp-prize-flash {
+  animation: stamp-prize-flash 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes stamp-bite-in {
+  0% {
+    transform: scale(0.35) rotate(-12deg);
+    filter: grayscale(1) brightness(1.1);
+  }
+  45% {
+    transform: scale(1.18) rotate(4deg);
+    filter: grayscale(0) brightness(1.15);
+  }
+  70% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    filter: none;
+  }
+}
+
+@keyframes bite-mark-appear {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes count-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.2);
+    color: #F5E6B8;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes stamp-prize-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.9) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 @keyframes wallet-card-enter {
   0% {
     opacity: 0;
@@ -162,6 +236,10 @@ body {
   .wallet-logo,
   .stamp-slot,
   .stamp-cookie--filled,
+  .stamp-cookie--just-filled,
+  .cookie-bite-mark,
+  .stamps-remaining--updated,
+  .stamp-prize-flash,
   .wallet-prize {
     animation: none !important;
     opacity: 1 !important;
