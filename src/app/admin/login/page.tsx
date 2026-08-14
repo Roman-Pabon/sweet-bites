@@ -2,6 +2,13 @@ import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminLoginForm } from "@/components/AdminLoginForm";
 
+function safeRedirectPath(path: string | undefined, fallback: string) {
+  if (!path || !path.startsWith("/") || path.startsWith("//") || path === "/admin/login") {
+    return fallback;
+  }
+  return path;
+}
+
 export default async function AdminLoginPage({
   searchParams,
 }: {
@@ -9,9 +16,10 @@ export default async function AdminLoginPage({
 }) {
   const admin = await getAdminSession();
   const { redirect: redirectTo } = await searchParams;
+  const destination = safeRedirectPath(redirectTo, "/admin");
 
   if (admin) {
-    redirect(redirectTo || "/admin");
+    redirect(destination);
   }
 
   return (
@@ -21,7 +29,7 @@ export default async function AdminLoginPage({
         <p className="mt-2 text-sm text-[var(--sweet-navy)]/60">Sweet Bites</p>
       </div>
       <div className="w-full max-w-sm">
-        <AdminLoginForm redirectTo={redirectTo || "/admin"} />
+        <AdminLoginForm redirectTo={destination} />
       </div>
     </div>
   );

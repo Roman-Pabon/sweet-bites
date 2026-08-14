@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 
 type Mode = "login" | "register";
 
 export function AuthForm() {
-  const router = useRouter();
   const [mode, setMode] = useState<Mode>("register");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -33,8 +31,7 @@ export function AuthForm() {
         return;
       }
 
-      router.push("/card");
-      router.refresh();
+      window.location.assign("/card");
     } catch {
       setError("Error de conexión. Intenta de nuevo.");
     } finally {

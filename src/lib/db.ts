@@ -48,12 +48,18 @@ class Statement {
 export class SqliteDatabase {
   constructor(
     private db: SqlJsDatabase,
-    private dbPath: string
+    private dbPath: string,
+    private onPersist?: () => void
   ) {}
 
   persist() {
     const data = this.db.export();
     fs.writeFileSync(this.dbPath, Buffer.from(data));
+    this.onPersist?.();
+  }
+
+  close() {
+    this.db.close();
   }
 
   prepare(sql: string) {
@@ -72,10 +78,23 @@ export class SqliteDatabase {
 
 const dbPath = getDbPath();
 let db: SqliteDatabase | null = null;
-let initPromise: Promise<void> | null = null;
+let initPromise: Promise<SqliteDatabase> | null = null;
+let loadedMtime = -1;
 
 function wasmPath(file: string) {
   return path.join(process.cwd(), "node_modules/sql.js/dist", file);
+}
+
+function getFileMtime() {
+  return fs.existsSync(dbPath) ? fs.statSync(dbPath).mtimeMs : 0;
+}
+
+function markLoadedMtime() {
+  loadedMtime = getFileMtime();
+}
+
+function isDbStale() {
+  return !db || getFileMtime() > loadedMtime;
 }
 
 function bootstrapSchema(database: SqliteDatabase) {
@@ -124,39 +143,49 @@ function bootstrapSchema(database: SqliteDatabase) {
   }
 }
 
-export async function initDb() {
-  if (db) return;
-  if (initPromise) {
-    await initPromise;
-    return;
+async function openDb() {
+  if (db) {
+    db.close();
+    db = null;
   }
 
-  initPromise = (async () => {
-    const dir = path.dirname(dbPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+  const dir = path.dirname(dbPath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 
-    const initSqlJs = (await import("sql.js")).default;
-    const SQL = await initSqlJs({ locateFile: wasmPath });
+  const initSqlJs = (await import("sql.js")).default;
+  const SQL = await initSqlJs({ locateFile: wasmPath });
 
-    let rawDb: SqlJsDatabase;
-    if (fs.existsSync(dbPath)) {
-      rawDb = new SQL.Database(fs.readFileSync(dbPath));
-    } else {
-      rawDb = new SQL.Database();
-    }
+  let rawDb: SqlJsDatabase;
+  if (fs.existsSync(dbPath)) {
+    rawDb = new SQL.Database(fs.readFileSync(dbPath));
+  } else {
+    rawDb = new SQL.Database();
+  }
 
-    db = new SqliteDatabase(rawDb, dbPath);
-    bootstrapSchema(db);
-  })();
+  db = new SqliteDatabase(rawDb, dbPath, markLoadedMtime);
+  bootstrapSchema(db);
+  markLoadedMtime();
+  return db;
+}
 
-  await initPromise;
+export async function initDb() {
+  await getDb();
 }
 
 export async function getDb() {
-  await initDb();
-  return db!;
+  if (!isDbStale() && db) {
+    return db;
+  }
+
+  if (!initPromise) {
+    initPromise = openDb().finally(() => {
+      initPromise = null;
+    });
+  }
+
+  return initPromise;
 }
 
 export type User = {

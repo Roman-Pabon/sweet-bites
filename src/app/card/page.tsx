@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { destroySession, getSession } from "@/lib/auth";
 import { getDb, type User } from "@/lib/db";
 import { getStampUrl, generateStampToken } from "@/lib/tokens";
 import { LoyaltyCard } from "@/components/LoyaltyCard";
@@ -17,6 +17,7 @@ export default async function CardPage() {
     .get(session.userId) as User | undefined;
 
   if (!user) {
+    await destroySession();
     redirect("/");
   }
 
