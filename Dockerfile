@@ -1,19 +1,14 @@
-FROM node:20-bookworm-slim AS base
-
-FROM base AS deps
+FROM node:20-bookworm-slim AS builder
 WORKDIR /app
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
 
-FROM base AS builder
-WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm install
+
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
-FROM base AS runner
+FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -24,7 +19,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/next.config.ts ./next.config.ts
 COPY --from=builder /app/scripts ./scripts
-COPY --from=deps /app/node_modules ./node_modules
+COPY --from=builder /app/node_modules ./node_modules
 
 RUN mkdir -p /app/data/uploads/avatars
 
