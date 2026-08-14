@@ -55,7 +55,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("Register error:", error);
     return NextResponse.json(
       { error: "Error al registrar usuario" },
       { status: 500 }
