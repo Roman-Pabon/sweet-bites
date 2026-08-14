@@ -30,4 +30,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-CMD ["sh", "-c", "mkdir -p /app/data/uploads/avatars && exec node server.js"]
+CMD ["node", "server.js"]
