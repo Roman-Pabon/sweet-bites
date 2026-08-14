@@ -1,26 +1,171 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #F2EBD9;
+  --foreground: #1E2430;
+  --sweet-navy: #1E2430;
+  --sweet-navy-light: #2A3140;
+  --sweet-gold: #E8D5A8;
+  --sweet-gold-light: #F0E6C8;
+  --sweet-gold-dark: #D4C090;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-sweet-navy: var(--sweet-navy);
+  --color-sweet-navy-light: var(--sweet-navy-light);
+  --color-sweet-gold: var(--sweet-gold);
+  --color-sweet-gold-light: var(--sweet-gold-light);
+  --font-sans: var(--font-display), system-ui, sans-serif;
+  --font-display: var(--font-display), system-ui, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+/* ── Wallet-style card entrance ── */
+.wallet-scene {
+  perspective: 1200px;
+  padding-top: 0.5rem;
+}
+
+.wallet-card {
+  overflow: hidden;
+  border-radius: 24px;
+  border: 2px solid var(--sweet-gold);
+  background: var(--sweet-navy);
+  box-shadow:
+    0 4px 6px rgba(30, 36, 48, 0.06),
+    0 20px 50px rgba(30, 36, 48, 0.18);
+  transform-origin: center bottom;
+  animation: wallet-card-enter 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wallet-section {
+  opacity: 0;
+  animation: wallet-section-reveal 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wallet-section--header  { animation-delay: 0.15s; }
+.wallet-section--stamps  { animation-delay: 0.28s; }
+.wallet-section--stats   { animation-delay: 0.4s; }
+.wallet-section--barcode { animation-delay: 0.52s; }
+
+.wallet-logo {
+  animation: wallet-logo-settle 0.7s cubic-bezier(0.34, 1.4, 0.64, 1) 0.25s both;
+}
+
+.wallet-prize {
+  animation: wallet-prize-pulse 2s ease-in-out 1s infinite;
+}
+
+/* ── Stamp slots ── */
+.stamp-slot {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.5);
+  animation: stamp-slot-pop 0.45s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+}
+
+.stamp-cookie {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.stamp-cookie--filled {
+  animation: stamp-filled-bounce 0.55s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+}
+
+@keyframes wallet-card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.86) rotateX(12deg);
+    box-shadow: 0 0 0 rgba(30, 36, 48, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotateX(0deg);
+    box-shadow:
+      0 4px 6px rgba(30, 36, 48, 0.06),
+      0 20px 50px rgba(30, 36, 48, 0.18);
+  }
+}
+
+@keyframes wallet-section-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes wallet-logo-settle {
+  0% {
+    opacity: 0;
+    transform: scale(0.7) translateY(-8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes stamp-slot-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes stamp-filled-bounce {
+  0% {
+    transform: scale(0.3) rotate(-8deg);
+  }
+  60% {
+    transform: scale(1.12) rotate(2deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes wallet-prize-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wallet-card,
+  .wallet-section,
+  .wallet-logo,
+  .stamp-slot,
+  .stamp-cookie--filled,
+  .wallet-prize {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
