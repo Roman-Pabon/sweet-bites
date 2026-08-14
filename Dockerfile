@@ -20,13 +20,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATA_DIR=/app/data
 
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-# Standalone file tracing can miss Linux sqlite binaries — copy full module from deps
-COPY --from=deps /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
-COPY --from=builder /app/scripts ./scripts
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/package.json ./package.json
-COPY --from=deps /app/node_modules ./node_modules_admin
+COPY --from=builder /app/scripts ./scripts
+COPY --from=deps /app/node_modules ./node_modules
 
 RUN mkdir -p /app/data/uploads/avatars
 
@@ -34,4 +31,4 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-CMD ["sh", "-c", "mkdir -p /app/data/uploads/avatars && exec node server.js"]
+CMD ["sh", "-c", "mkdir -p /app/data/uploads/avatars && exec npm start"]
