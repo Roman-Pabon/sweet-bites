@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import initSqlJs, { type Database as SqlJsDatabase, type SqlValue } from "sql.js";
+import type { Database as SqlJsDatabase, SqlValue } from "sql.js";
 import { getDbPath } from "./paths";
 import { generateStampToken } from "./tokens";
 
@@ -137,6 +137,7 @@ export async function initDb() {
       fs.mkdirSync(dir, { recursive: true });
     }
 
+    const initSqlJs = (await import("sql.js")).default;
     const SQL = await initSqlJs({ locateFile: wasmPath });
 
     let rawDb: SqlJsDatabase;
