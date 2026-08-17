@@ -1,7 +1,14 @@
+import type { CSSProperties } from "react";
+
 type StampIconProps = {
   filled: boolean;
   index?: number;
   justFilled?: boolean;
+};
+
+type CrumbStyle = CSSProperties & {
+  "--crumb-dx"?: string;
+  "--crumb-dy"?: string;
 };
 
 const NAVY = "#1E2430";
@@ -125,6 +132,137 @@ const CHIP_SETS: Chip[][] = [
   ],
 ];
 
+type BiteShape = {
+  cutout: string;
+  edge: string;
+  innerEdge: string;
+  crumbs: { d: string; dx: number; dy: number }[];
+  origin: { x: number; y: number };
+};
+
+const BITE_SHAPES: BiteShape[] = [
+  {
+    cutout:
+      "M 35 13 Q 38 6 42 10 Q 46 14 50 8 Q 54 3 58 7 Q 61 10 64 15 L 64 64 L 36 64 Q 34 46 33 30 Q 33 20 35 13 Z",
+    edge: "M 35 13 Q 38 6 42 10 Q 46 14 50 8 Q 54 3 58 7 Q 61 10 64 15",
+    innerEdge: "M 36 14 Q 39 8 42 11 Q 46 15 50 10 Q 54 5 58 9 Q 61 12 63 16",
+    crumbs: [
+      { d: "M 57 4 L 60 2 L 58 7 Z", dx: 2, dy: -5 },
+      { d: "M 61 10 L 64 8 L 62 13 Z", dx: 4, dy: -3 },
+      { d: "M 52 2 L 55 0 L 53 5 Z", dx: 1, dy: -6 },
+    ],
+    origin: { x: 50, y: 12 },
+  },
+  {
+    cutout:
+      "M 34 14 Q 37 5 41 9 Q 45 13 49 7 Q 53 2 57 6 Q 60 9 64 14 L 64 64 L 35 64 Q 33 44 32 28 Q 32 19 34 14 Z",
+    edge: "M 34 14 Q 37 5 41 9 Q 45 13 49 7 Q 53 2 57 6 Q 60 9 64 14",
+    innerEdge: "M 35 15 Q 38 7 41 10 Q 45 14 49 9 Q 53 4 57 8 Q 60 11 63 15",
+    crumbs: [
+      { d: "M 56 3 L 59 1 L 57 6 Z", dx: 3, dy: -4 },
+      { d: "M 62 9 L 64 7 L 63 12 Z", dx: 5, dy: -2 },
+      { d: "M 51 1 L 54 -1 L 52 4 Z", dx: 2, dy: -5 },
+    ],
+    origin: { x: 49, y: 11 },
+  },
+  {
+    cutout:
+      "M 36 12 Q 39 4 43 8 Q 47 12 51 6 Q 55 1 59 5 Q 62 8 64 13 L 64 64 L 37 64 Q 35 48 34 32 Q 34 22 36 12 Z",
+    edge: "M 36 12 Q 39 4 43 8 Q 47 12 51 6 Q 55 1 59 5 Q 62 8 64 13",
+    innerEdge: "M 37 13 Q 40 6 43 9 Q 47 13 51 8 Q 55 3 59 7 Q 62 10 63 14",
+    crumbs: [
+      { d: "M 58 5 L 61 3 L 59 8 Z", dx: 3, dy: -4 },
+      { d: "M 63 11 L 64 9 L 63 14 Z", dx: 4, dy: -3 },
+      { d: "M 53 3 L 56 1 L 54 6 Z", dx: 2, dy: -5 },
+    ],
+    origin: { x: 51, y: 11 },
+  },
+  {
+    cutout:
+      "M 33 15 Q 36 7 40 11 Q 44 15 48 9 Q 52 4 56 8 Q 59 11 64 16 L 64 64 L 34 64 Q 32 45 31 29 Q 31 21 33 15 Z",
+    edge: "M 33 15 Q 36 7 40 11 Q 44 15 48 9 Q 52 4 56 8 Q 59 11 64 16",
+    innerEdge: "M 34 16 Q 37 9 40 12 Q 44 16 48 11 Q 52 6 56 10 Q 59 13 63 17",
+    crumbs: [
+      { d: "M 55 4 L 58 2 L 56 7 Z", dx: 2, dy: -5 },
+      { d: "M 60 12 L 63 10 L 61 15 Z", dx: 4, dy: -2 },
+      { d: "M 50 3 L 53 1 L 51 6 Z", dx: 1, dy: -6 },
+    ],
+    origin: { x: 48, y: 13 },
+  },
+  {
+    cutout:
+      "M 35 11 Q 38 3 42 7 Q 46 11 50 5 Q 54 0 58 4 Q 61 7 64 12 L 64 64 L 36 64 Q 34 47 33 31 Q 33 21 35 11 Z",
+    edge: "M 35 11 Q 38 3 42 7 Q 46 11 50 5 Q 54 0 58 4 Q 61 7 64 12",
+    innerEdge: "M 36 12 Q 39 5 42 8 Q 46 12 50 7 Q 54 2 58 6 Q 61 9 63 13",
+    crumbs: [
+      { d: "M 57 2 L 60 0 L 58 5 Z", dx: 3, dy: -5 },
+      { d: "M 62 8 L 64 6 L 62 11 Z", dx: 5, dy: -3 },
+      { d: "M 52 0 L 55 -2 L 53 3 Z", dx: 2, dy: -6 },
+    ],
+    origin: { x: 50, y: 10 },
+  },
+  {
+    cutout:
+      "M 34 13 Q 37 6 41 10 Q 45 14 49 8 Q 53 3 57 7 Q 60 10 64 14 L 64 64 L 35 64 Q 33 47 32 31 Q 32 21 34 13 Z",
+    edge: "M 34 13 Q 37 6 41 10 Q 45 14 49 8 Q 53 3 57 7 Q 60 10 64 14",
+    innerEdge: "M 35 14 Q 38 8 41 11 Q 45 15 49 10 Q 53 5 57 9 Q 60 12 63 15",
+    crumbs: [
+      { d: "M 56 4 L 59 2 L 57 7 Z", dx: 2, dy: -4 },
+      { d: "M 61 11 L 64 9 L 62 14 Z", dx: 4, dy: -3 },
+      { d: "M 51 2 L 54 0 L 52 5 Z", dx: 1, dy: -5 },
+    ],
+    origin: { x: 49, y: 12 },
+  },
+  {
+    cutout:
+      "M 36 14 Q 39 7 43 11 Q 47 15 51 9 Q 55 4 59 8 Q 62 11 64 16 L 64 64 L 37 64 Q 35 49 34 33 Q 34 23 36 14 Z",
+    edge: "M 36 14 Q 39 7 43 11 Q 47 15 51 9 Q 55 4 59 8 Q 62 11 64 16",
+    innerEdge: "M 37 15 Q 40 9 43 12 Q 47 16 51 11 Q 55 6 59 10 Q 62 13 63 17",
+    crumbs: [
+      { d: "M 58 3 L 61 1 L 59 6 Z", dx: 3, dy: -5 },
+      { d: "M 63 10 L 64 8 L 63 13 Z", dx: 5, dy: -2 },
+      { d: "M 54 1 L 57 -1 L 55 4 Z", dx: 2, dy: -6 },
+    ],
+    origin: { x: 51, y: 13 },
+  },
+  {
+    cutout:
+      "M 33 12 Q 36 4 40 8 Q 44 12 48 6 Q 52 1 56 5 Q 59 8 64 13 L 64 64 L 34 64 Q 32 46 31 30 Q 31 20 33 12 Z",
+    edge: "M 33 12 Q 36 4 40 8 Q 44 12 48 6 Q 52 1 56 5 Q 59 8 64 13",
+    innerEdge: "M 34 13 Q 37 6 40 9 Q 44 13 48 8 Q 52 3 56 7 Q 59 10 63 14",
+    crumbs: [
+      { d: "M 55 2 L 58 0 L 56 5 Z", dx: 2, dy: -5 },
+      { d: "M 60 9 L 63 7 L 61 12 Z", dx: 4, dy: -3 },
+      { d: "M 50 0 L 53 -2 L 51 3 Z", dx: 1, dy: -6 },
+    ],
+    origin: { x: 48, y: 11 },
+  },
+  {
+    cutout:
+      "M 35 15 Q 38 8 42 12 Q 46 16 50 10 Q 54 5 58 9 Q 61 12 64 17 L 64 64 L 36 64 Q 34 45 33 29 Q 33 22 35 15 Z",
+    edge: "M 35 15 Q 38 8 42 12 Q 46 16 50 10 Q 54 5 58 9 Q 61 12 64 17",
+    innerEdge: "M 36 16 Q 39 10 42 13 Q 46 17 50 12 Q 54 7 58 11 Q 61 14 63 18",
+    crumbs: [
+      { d: "M 57 5 L 60 3 L 58 8 Z", dx: 3, dy: -4 },
+      { d: "M 62 12 L 64 10 L 62 15 Z", dx: 4, dy: -2 },
+      { d: "M 52 3 L 55 1 L 53 6 Z", dx: 2, dy: -5 },
+    ],
+    origin: { x: 50, y: 14 },
+  },
+  {
+    cutout:
+      "M 34 11 Q 37 3 41 7 Q 45 11 49 5 Q 53 0 57 4 Q 60 7 64 12 L 64 64 L 35 64 Q 33 48 32 32 Q 32 22 34 11 Z",
+    edge: "M 34 11 Q 37 3 41 7 Q 45 11 49 5 Q 53 0 57 4 Q 60 7 64 12",
+    innerEdge: "M 35 12 Q 38 5 41 8 Q 45 12 49 7 Q 53 2 57 6 Q 60 9 63 13",
+    crumbs: [
+      { d: "M 56 2 L 59 0 L 57 5 Z", dx: 2, dy: -5 },
+      { d: "M 61 8 L 64 6 L 62 11 Z", dx: 5, dy: -3 },
+      { d: "M 51 1 L 54 -1 L 52 4 Z", dx: 1, dy: -6 },
+    ],
+    origin: { x: 49, y: 10 },
+  },
+];
+
 function ChipShape({ chip, filled }: { chip: Chip; filled: boolean }) {
   const transform =
     chip.rot && chip.cx && chip.cy
@@ -147,15 +285,87 @@ function ChipShape({ chip, filled }: { chip: Chip; filled: boolean }) {
 function CookieShape({
   filled,
   index,
-  showBite,
+  justFilled,
 }: {
   filled: boolean;
   index: number;
-  showBite?: boolean;
+  justFilled?: boolean;
 }) {
   const cookiePath = COOKIE_PATHS[index % 3];
   const chips = CHIP_SETS[index % CHIP_SETS.length];
+  const bite = BITE_SHAPES[index % BITE_SHAPES.length];
   const uid = `c${index}`;
+
+  const filledCookie = (
+    <>
+      <path
+        d={cookiePath}
+        fill={`url(#${uid}-base)`}
+        stroke="#8B5520"
+        strokeWidth={2}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      <path d={cookiePath} fill={`url(#${uid}-shade)`} />
+      <path
+        d={cookiePath}
+        fill="none"
+        stroke="#7A4818"
+        strokeWidth="1.4"
+        strokeOpacity="0.5"
+      />
+      {chips.map((chip, i) => (
+        <ChipShape key={i} chip={chip} filled />
+      ))}
+    </>
+  );
+
+  const biteOverlay = filled ? (
+    <>
+      <path
+        className={justFilled ? "cookie-bite-edge" : undefined}
+        d={bite.edge}
+        fill="none"
+        stroke="#5C3410"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={justFilled ? undefined : 0.8}
+      />
+      <path
+        className={justFilled ? "cookie-bite-edge cookie-bite-edge--inner" : "cookie-bite-edge--inner"}
+        d={bite.innerEdge}
+        fill="none"
+        stroke="#C8842A"
+        strokeWidth="1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={justFilled ? undefined : 0.55}
+      />
+      {bite.crumbs.map((crumb, i) => (
+        <path
+          key={i}
+          className={
+            justFilled
+              ? "cookie-bite-crumb cookie-bite-crumb--animate"
+              : "cookie-bite-crumb"
+          }
+          d={crumb.d}
+          fill="#E8A840"
+          stroke="#8B5520"
+          strokeWidth="0.8"
+          strokeLinejoin="round"
+          style={
+            {
+              "--crumb-dx": `${crumb.dx}px`,
+              "--crumb-dy": `${crumb.dy}px`,
+              animationDelay: `${0.42 + i * 0.06}s`,
+            } as CrumbStyle
+          }
+        />
+      ))}
+    </>
+  ) : null;
 
   return (
     <svg
@@ -177,52 +387,43 @@ function CookieShape({
         <filter id={`${uid}-shadow`} x="-10%" y="-10%" width="120%" height="120%">
           <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#8B5A20" floodOpacity="0.35" />
         </filter>
+        {filled && (
+          <mask id={`${uid}-bite-mask`}>
+            <rect width="64" height="64" fill="white" />
+            <path d={cookiePath} fill="white" />
+            <g
+              className={justFilled ? "cookie-bite-hole cookie-bite-hole--animate" : "cookie-bite-hole"}
+              style={{
+                transformOrigin: `${bite.origin.x}px ${bite.origin.y}px`,
+              }}
+            >
+              <path d={bite.cutout} fill="black" />
+            </g>
+          </mask>
+        )}
       </defs>
 
       <g filter={filled ? `url(#${uid}-shadow)` : undefined}>
-        <path
-          d={cookiePath}
-          fill={filled ? `url(#${uid}-base)` : "none"}
-          stroke={filled ? "#8B5520" : NAVY}
-          strokeWidth={filled ? 2 : 2.2}
-          strokeOpacity={filled ? 1 : 0.55}
-          strokeLinejoin="round"
-          strokeLinecap="round"
-        />
-
-        {filled && (
+        {filled ? (
           <>
-            <path d={cookiePath} fill={`url(#${uid}-shade)`} />
+            <g mask={`url(#${uid}-bite-mask)`}>{filledCookie}</g>
+            {biteOverlay}
+          </>
+        ) : (
+          <>
             <path
               d={cookiePath}
               fill="none"
-              stroke="#7A4818"
-              strokeWidth="1.4"
-              strokeOpacity="0.5"
+              stroke={NAVY}
+              strokeWidth={2.2}
+              strokeOpacity={0.55}
+              strokeLinejoin="round"
+              strokeLinecap="round"
             />
-            {chips.map((chip, i) => (
-              <ChipShape key={i} chip={chip} filled />
+            {chips.slice(0, 6).map((chip, i) => (
+              <ChipShape key={i} chip={chip} filled={false} />
             ))}
           </>
-        )}
-
-        {!filled && chips.slice(0, 6).map((chip, i) => (
-          <ChipShape key={i} chip={chip} filled={false} />
-        ))}
-
-        {filled && showBite && (
-          <g className="cookie-bite-mark">
-            <circle cx="46" cy="18" r="9" fill="var(--sweet-gold-light)" />
-            <circle cx="44" cy="16" r="6" fill="#F0E6C8" opacity="0.9" />
-            <path
-              d="M38 14 Q44 10 50 14"
-              fill="none"
-              stroke="#C8842A"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-              opacity="0.6"
-            />
-          </g>
         )}
       </g>
     </svg>
@@ -247,7 +448,7 @@ export function StampIcon({ filled, index = 0, justFilled = false }: StampIconPr
         }
         style={{ animationDelay: `${0.6 + index * 0.05}s` }}
       >
-        <CookieShape filled={filled} index={index} showBite={filled && justFilled} />
+        <CookieShape filled={filled} index={index} justFilled={justFilled} />
       </div>
     </div>
   );

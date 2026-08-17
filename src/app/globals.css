@@ -89,16 +89,41 @@ body {
 }
 
 .stamp-cookie--just-filled {
-  animation: stamp-bite-in 0.85s cubic-bezier(0.34, 1.45, 0.64, 1) both;
+  animation: stamp-bite-in 0.9s cubic-bezier(0.34, 1.45, 0.64, 1) both;
 }
 
 .stamp-slot--just-filled {
   z-index: 2;
 }
 
-.cookie-bite-mark {
-  animation: bite-mark-appear 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) 0.35s both;
-  transform-origin: 46px 18px;
+.cookie-bite-hole {
+  transform: scale(1);
+}
+
+.cookie-bite-hole--animate {
+  animation: cookie-bite-chomp 0.6s cubic-bezier(0.34, 1.55, 0.64, 1) 0.25s both;
+}
+
+.cookie-bite-edge {
+  opacity: 0;
+  animation: cookie-bite-edge-in 0.35s ease-out 0.52s both;
+}
+
+.cookie-bite-edge--inner {
+  opacity: 0.55;
+}
+
+.stamp-cookie--just-filled .cookie-bite-edge--inner {
+  animation: cookie-bite-edge-in 0.35s ease-out 0.58s both;
+}
+
+.cookie-bite-crumb {
+  opacity: 0.75;
+}
+
+.cookie-bite-crumb--animate {
+  opacity: 0;
+  animation: cookie-crumb-fly 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
 .stamps-remaining--updated {
@@ -111,30 +136,64 @@ body {
 
 @keyframes stamp-bite-in {
   0% {
-    transform: scale(0.35) rotate(-12deg);
-    filter: grayscale(1) brightness(1.1);
+    transform: scale(0.4);
+    filter: grayscale(1) brightness(1.05);
   }
-  45% {
-    transform: scale(1.18) rotate(4deg);
-    filter: grayscale(0) brightness(1.15);
+  38% {
+    transform: scale(1.14);
+    filter: grayscale(0) brightness(1.12);
   }
-  70% {
-    transform: scale(0.95) rotate(-2deg);
+  58% {
+    transform: scale(0.92);
+  }
+  78% {
+    transform: scale(1.05);
   }
   100% {
-    transform: scale(1) rotate(0deg);
+    transform: scale(1);
     filter: none;
   }
 }
 
-@keyframes bite-mark-appear {
+@keyframes cookie-bite-chomp {
   0% {
-    opacity: 0;
     transform: scale(0);
+    opacity: 0;
+  }
+  35% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  55% {
+    transform: scale(0.96);
   }
   100% {
-    opacity: 1;
     transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cookie-crumb-fly {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0) rotate(0deg);
+  }
+  35% {
+    opacity: 1;
+    transform: translate(calc(var(--crumb-dx) * 0.6), calc(var(--crumb-dy) * 0.6)) scale(1.1) rotate(-8deg);
+  }
+  100% {
+    opacity: 0.8;
+    transform: translate(var(--crumb-dx), var(--crumb-dy)) scale(1) rotate(-4deg);
+  }
+}
+
+@keyframes cookie-bite-edge-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.75;
   }
 }
 
@@ -237,7 +296,10 @@ body {
   .stamp-slot,
   .stamp-cookie--filled,
   .stamp-cookie--just-filled,
-  .cookie-bite-mark,
+  .cookie-bite-hole--animate,
+  .cookie-bite-edge,
+  .cookie-bite-edge--inner,
+  .cookie-bite-crumb--animate,
   .stamps-remaining--updated,
   .stamp-prize-flash,
   .wallet-prize {
