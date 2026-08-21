@@ -48,41 +48,46 @@ const COOKIE_PATHS = [
   "M33 6 C41 7 49 11 53 19 C57 27 55 36 49 43 C43 50 34 55 25 53 C16 51 9 44 7 35 C5 26 10 17 18 11 C24 7 28 5 33 6 Z",
 ];
 
-/** Scalloped bite edge — three semicircular tooth marks on the right side */
-const BITE_EDGE_PATHS = [
-  "M 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 50 43",
-  "M 47 10 A 5 5 0 0 0 47 20 A 5 5 0 0 1 47 30 A 5 5 0 0 0 47 40 L 51 44",
-  "M 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 49 42",
-];
+/**
+ * Single continuous bite edge — three scallops opening toward the removed chunk (upper-right).
+ * Quadratic curves: control point pulls into bite zone, end point stays on cookie body.
+ */
+const BITE_EDGE =
+  "Q 51 11 47 15 Q 43 18 52 21 Q 47 25 54 29 Q 49 33 52 40";
 
-/** Cookie outline with bite built in — stroke follows the scalloped edge */
+const BITE_EDGE_ALT =
+  "Q 52 12 48 16 Q 44 19 53 22 Q 48 26 55 30 Q 50 34 53 41";
+
+const BITE_INNER_EDGE =
+  "M 45 11 Q 50 12 47 16 Q 44 19 51 22 Q 48 26 53 30 Q 50 34 51 39";
+
+const BITE_INNER_EDGE_ALT =
+  "M 46 12 Q 51 13 48 17 Q 45 20 52 23 Q 49 27 54 31 Q 51 35 52 40";
+
+/** Cookie outline with one unified bite — stroke follows the scalloped edge */
 const BITTEN_COOKIE_PATHS = [
-  "M 32 7 C 39 5 47 8 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 50 43 C 52 42 46 48 38 52 C 30 56 20 54 14 48 C 8 42 6 33 9 24 C 12 15 20 9 32 7 Z",
-  "M 30 8 C 38 6 46 9 47 10 A 5 5 0 0 0 47 20 A 5 5 0 0 1 47 30 A 5 5 0 0 0 47 40 L 51 44 C 48 46 40 53 31 54 C 22 55 13 50 9 41 C 5 32 7 22 13 15 C 19 8 24 9 30 8 Z",
-  "M 33 6 C 41 7 49 11 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 49 42 C 49 43 43 50 34 55 C 25 53 16 51 9 44 C 7 35 5 26 10 17 C 18 11 24 7 28 5 C 31 5 33 6 33 6 Z",
+  `M 32 7 C 39 5 47 8 44 9 ${BITE_EDGE} C 52 42 46 48 38 52 C 30 56 20 54 14 48 C 8 42 6 33 9 24 C 12 15 20 9 32 7 Z`,
+  `M 30 8 C 38 6 46 9 45 10 ${BITE_EDGE_ALT} C 48 46 40 53 31 54 C 22 55 13 50 9 41 C 5 32 7 22 13 15 C 19 8 24 9 30 8 Z`,
+  `M 33 6 C 41 7 49 11 44 9 ${BITE_EDGE} C 49 43 43 50 34 55 C 25 53 16 51 9 44 C 7 35 5 26 10 17 C 18 11 24 7 28 5 C 31 5 33 6 33 6 Z`,
 ];
 
-const BITE_INNER_EDGE_PATHS = [
-  "M 47 12 A 3.5 3.5 0 0 0 47 19 A 3.5 3.5 0 0 1 47 26 A 3.5 3.5 0 0 0 47 33 A 3.5 3.5 0 0 1 47 40",
-  "M 48 13 A 3.5 3.5 0 0 0 48 20 A 3.5 3.5 0 0 1 48 27 A 3.5 3.5 0 0 0 48 34 A 3.5 3.5 0 0 1 48 41",
-  "M 47 12 A 3.5 3.5 0 0 0 47 19 A 3.5 3.5 0 0 1 47 26 A 3.5 3.5 0 0 0 47 33 A 3.5 3.5 0 0 1 47 40",
-];
+const BITE_INNER_EDGE_PATHS = [BITE_INNER_EDGE, BITE_INNER_EDGE_ALT, BITE_INNER_EDGE];
 
 const BITE_CRUMBS = [
   [
-    { d: "M 52 3 L 56 1 L 54 7 L 50 6 Z", dx: 3, dy: -6, fill: COOKIE_BODY_LIGHT },
-    { d: "M 58 9 L 61 7 L 59 12 Z", dx: 5, dy: -3, fill: COOKIE_OUTLINE },
-    { d: "M 54 13 L 57 11 L 55 15 Z", dx: 4, dy: -1, fill: COOKIE_OUTLINE },
+    { d: "M 54 4 L 58 2 L 56 8 L 52 7 Z", dx: 4, dy: -5, fill: COOKIE_BODY_LIGHT },
+    { d: "M 59 10 L 62 8 L 60 13 Z", dx: 6, dy: -3, fill: COOKIE_OUTLINE },
+    { d: "M 56 14 L 59 12 L 57 16 Z", dx: 5, dy: -1, fill: COOKIE_OUTLINE },
   ],
   [
-    { d: "M 53 4 L 57 2 L 55 8 L 51 7 Z", dx: 3, dy: -5, fill: COOKIE_BODY_LIGHT },
-    { d: "M 59 10 L 62 8 L 60 13 Z", dx: 5, dy: -3, fill: COOKIE_OUTLINE },
-    { d: "M 55 14 L 58 12 L 56 16 Z", dx: 4, dy: -2, fill: COOKIE_OUTLINE },
+    { d: "M 55 5 L 59 3 L 57 9 L 53 8 Z", dx: 4, dy: -5, fill: COOKIE_BODY_LIGHT },
+    { d: "M 60 11 L 63 9 L 61 14 Z", dx: 6, dy: -3, fill: COOKIE_OUTLINE },
+    { d: "M 57 15 L 60 13 L 58 17 Z", dx: 5, dy: -2, fill: COOKIE_OUTLINE },
   ],
   [
-    { d: "M 51 2 L 55 0 L 53 6 L 49 5 Z", dx: 3, dy: -6, fill: COOKIE_BODY_LIGHT },
-    { d: "M 57 8 L 60 6 L 58 11 Z", dx: 5, dy: -4, fill: COOKIE_OUTLINE },
-    { d: "M 53 12 L 56 10 L 54 14 Z", dx: 4, dy: -2, fill: COOKIE_OUTLINE },
+    { d: "M 53 3 L 57 1 L 55 7 L 51 6 Z", dx: 4, dy: -6, fill: COOKIE_BODY_LIGHT },
+    { d: "M 58 9 L 61 7 L 59 12 Z", dx: 6, dy: -4, fill: COOKIE_OUTLINE },
+    { d: "M 55 13 L 58 11 L 56 15 Z", dx: 5, dy: -2, fill: COOKIE_OUTLINE },
   ],
 ];
 
@@ -202,7 +207,6 @@ const CHIP_SETS: Chip[][] = [
 type BiteData = {
   bittenPath: string;
   fullPath: string;
-  biteEdge: string;
   innerEdge: string;
   crumbs: { d: string; dx: number; dy: number; fill: string }[];
   origin: { x: number; y: number };
@@ -213,10 +217,9 @@ function getBiteData(index: number): BiteData {
   return {
     bittenPath: BITTEN_COOKIE_PATHS[shape],
     fullPath: COOKIE_PATHS[shape],
-    biteEdge: BITE_EDGE_PATHS[shape],
     innerEdge: BITE_INNER_EDGE_PATHS[shape],
     crumbs: BITE_CRUMBS[shape],
-    origin: { x: 47, y: 22 },
+    origin: { x: 50, y: 20 },
   };
 }
 
@@ -318,9 +321,11 @@ function CookieShape({
             opacity={0.35}
           />
         ))}
-        {chips.map((chip, i) => (
-          <ChipShape key={i} chip={chip} filled />
-        ))}
+        {chips
+          .filter((chip) => !(chip.cx && chip.cx > 44 && chip.cy && chip.cy < 38))
+          .map((chip, i) => (
+            <ChipShape key={i} chip={chip} filled />
+          ))}
       </g>
       <path
         d={bite.innerEdge}
