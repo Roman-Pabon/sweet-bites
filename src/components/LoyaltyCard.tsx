@@ -44,7 +44,7 @@ export function LoyaltyCard({
           setTimeout(() => {
             setNewStampIndex(null);
             setRemainingPulse(false);
-          }, 1400);
+          }, 1800);
         }
 
         if (data.rewards > prevRewards.current) {

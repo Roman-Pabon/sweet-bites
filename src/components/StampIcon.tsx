@@ -12,6 +12,35 @@ type CrumbStyle = CSSProperties & {
 };
 
 const NAVY = "#1E2430";
+const COOKIE_OUTLINE = "#3D2314";
+const COOKIE_BODY = "#E8C878";
+const COOKIE_BODY_LIGHT = "#F2D898";
+const COOKIE_BODY_DARK = "#C89440";
+
+/** Tiny dough specks for texture (fixed per cookie index) */
+const SPECK_SETS: { cx: number; cy: number; r: number }[][] = [
+  [
+    { cx: 22, cy: 18, r: 0.7 },
+    { cx: 28, cy: 42, r: 0.5 },
+    { cx: 38, cy: 28, r: 0.6 },
+    { cx: 16, cy: 36, r: 0.5 },
+    { cx: 44, cy: 44, r: 0.7 },
+  ],
+  [
+    { cx: 20, cy: 30, r: 0.6 },
+    { cx: 34, cy: 22, r: 0.5 },
+    { cx: 26, cy: 46, r: 0.7 },
+    { cx: 42, cy: 38, r: 0.5 },
+    { cx: 18, cy: 44, r: 0.6 },
+  ],
+  [
+    { cx: 24, cy: 20, r: 0.5 },
+    { cx: 30, cy: 38, r: 0.7 },
+    { cx: 40, cy: 30, r: 0.5 },
+    { cx: 14, cy: 28, r: 0.6 },
+    { cx: 36, cy: 46, r: 0.5 },
+  ],
+];
 
 const COOKIE_PATHS = [
   "M32 7 C39 5 47 8 51 15 C56 20 57 28 54 35 C52 42 46 48 38 52 C30 56 20 54 14 48 C8 42 6 33 9 24 C12 15 20 9 32 7 Z",
@@ -136,132 +165,59 @@ type BiteShape = {
   cutout: string;
   edge: string;
   innerEdge: string;
-  crumbs: { d: string; dx: number; dy: number }[];
+  crumbs: { d: string; dx: number; dy: number; fill: string }[];
   origin: { x: number; y: number };
 };
 
-const BITE_SHAPES: BiteShape[] = [
-  {
-    cutout:
-      "M 35 13 Q 38 6 42 10 Q 46 14 50 8 Q 54 3 58 7 Q 61 10 64 15 L 64 64 L 36 64 Q 34 46 33 30 Q 33 20 35 13 Z",
-    edge: "M 35 13 Q 38 6 42 10 Q 46 14 50 8 Q 54 3 58 7 Q 61 10 64 15",
-    innerEdge: "M 36 14 Q 39 8 42 11 Q 46 15 50 10 Q 54 5 58 9 Q 61 12 63 16",
+/** Three scalloped tooth marks — upper-right bite (variations per stamp) */
+function buildBiteShape(offset: number): BiteShape {
+  const o = offset * 0.8;
+  return {
+    cutout: `M ${39 + o} ${9 + o * 0.3}
+      Q ${42 + o} ${4 + o * 0.2} ${45 + o} ${10 + o * 0.3}
+      Q ${48 + o} ${16 + o * 0.2} ${44 + o} ${18 + o * 0.3}
+      Q ${40 + o} ${20 + o * 0.2} ${46 + o} ${23 + o * 0.3}
+      Q ${52 + o} ${26 + o * 0.2} ${48 + o} ${29 + o * 0.3}
+      Q ${44 + o} ${32 + o * 0.2} ${50 + o} ${34 + o * 0.3}
+      L 64 36 L 64 64 L ${37 + o} 64
+      Q ${35 + o} 48 ${36 + o} 32 Q ${37 + o} 18 ${39 + o} ${9 + o * 0.3} Z`,
+    edge: `M ${39 + o} ${9 + o * 0.3}
+      Q ${42 + o} ${4 + o * 0.2} ${45 + o} ${10 + o * 0.3}
+      Q ${48 + o} ${16 + o * 0.2} ${44 + o} ${18 + o * 0.3}
+      Q ${40 + o} ${20 + o * 0.2} ${46 + o} ${23 + o * 0.3}
+      Q ${52 + o} ${26 + o * 0.2} ${48 + o} ${29 + o * 0.3}
+      Q ${44 + o} ${32 + o * 0.2} ${50 + o} ${34 + o * 0.3}`,
+    innerEdge: `M ${40 + o} ${10 + o * 0.3}
+      Q ${43 + o} ${6 + o * 0.2} ${45 + o} ${11 + o * 0.3}
+      Q ${47 + o} ${16 + o * 0.2} ${44 + o} ${18 + o * 0.3}
+      Q ${41 + o} ${20 + o * 0.2} ${46 + o} ${23 + o * 0.3}
+      Q ${50 + o} ${26 + o * 0.2} ${47 + o} ${29 + o * 0.3}
+      Q ${44 + o} ${31 + o * 0.2} ${49 + o} ${33 + o * 0.3}`,
     crumbs: [
-      { d: "M 57 4 L 60 2 L 58 7 Z", dx: 2, dy: -5 },
-      { d: "M 61 10 L 64 8 L 62 13 Z", dx: 4, dy: -3 },
-      { d: "M 52 2 L 55 0 L 53 5 Z", dx: 1, dy: -6 },
+      {
+        d: `M ${52 + o} ${2 + o} L ${56 + o} ${0 + o} L ${54 + o} ${6 + o} L ${50 + o} ${5 + o} Z`,
+        dx: 3,
+        dy: -7,
+        fill: COOKIE_BODY_LIGHT,
+      },
+      {
+        d: `M ${58 + o} ${8 + o} L ${61 + o} ${6 + o} L ${59 + o} ${11 + o} Z`,
+        dx: 5,
+        dy: -4,
+        fill: COOKIE_OUTLINE,
+      },
+      {
+        d: `M ${54 + o} ${12 + o} L ${57 + o} ${10 + o} L ${55 + o} ${14 + o} Z`,
+        dx: 4,
+        dy: -2,
+        fill: COOKIE_OUTLINE,
+      },
     ],
-    origin: { x: 50, y: 12 },
-  },
-  {
-    cutout:
-      "M 34 14 Q 37 5 41 9 Q 45 13 49 7 Q 53 2 57 6 Q 60 9 64 14 L 64 64 L 35 64 Q 33 44 32 28 Q 32 19 34 14 Z",
-    edge: "M 34 14 Q 37 5 41 9 Q 45 13 49 7 Q 53 2 57 6 Q 60 9 64 14",
-    innerEdge: "M 35 15 Q 38 7 41 10 Q 45 14 49 9 Q 53 4 57 8 Q 60 11 63 15",
-    crumbs: [
-      { d: "M 56 3 L 59 1 L 57 6 Z", dx: 3, dy: -4 },
-      { d: "M 62 9 L 64 7 L 63 12 Z", dx: 5, dy: -2 },
-      { d: "M 51 1 L 54 -1 L 52 4 Z", dx: 2, dy: -5 },
-    ],
-    origin: { x: 49, y: 11 },
-  },
-  {
-    cutout:
-      "M 36 12 Q 39 4 43 8 Q 47 12 51 6 Q 55 1 59 5 Q 62 8 64 13 L 64 64 L 37 64 Q 35 48 34 32 Q 34 22 36 12 Z",
-    edge: "M 36 12 Q 39 4 43 8 Q 47 12 51 6 Q 55 1 59 5 Q 62 8 64 13",
-    innerEdge: "M 37 13 Q 40 6 43 9 Q 47 13 51 8 Q 55 3 59 7 Q 62 10 63 14",
-    crumbs: [
-      { d: "M 58 5 L 61 3 L 59 8 Z", dx: 3, dy: -4 },
-      { d: "M 63 11 L 64 9 L 63 14 Z", dx: 4, dy: -3 },
-      { d: "M 53 3 L 56 1 L 54 6 Z", dx: 2, dy: -5 },
-    ],
-    origin: { x: 51, y: 11 },
-  },
-  {
-    cutout:
-      "M 33 15 Q 36 7 40 11 Q 44 15 48 9 Q 52 4 56 8 Q 59 11 64 16 L 64 64 L 34 64 Q 32 45 31 29 Q 31 21 33 15 Z",
-    edge: "M 33 15 Q 36 7 40 11 Q 44 15 48 9 Q 52 4 56 8 Q 59 11 64 16",
-    innerEdge: "M 34 16 Q 37 9 40 12 Q 44 16 48 11 Q 52 6 56 10 Q 59 13 63 17",
-    crumbs: [
-      { d: "M 55 4 L 58 2 L 56 7 Z", dx: 2, dy: -5 },
-      { d: "M 60 12 L 63 10 L 61 15 Z", dx: 4, dy: -2 },
-      { d: "M 50 3 L 53 1 L 51 6 Z", dx: 1, dy: -6 },
-    ],
-    origin: { x: 48, y: 13 },
-  },
-  {
-    cutout:
-      "M 35 11 Q 38 3 42 7 Q 46 11 50 5 Q 54 0 58 4 Q 61 7 64 12 L 64 64 L 36 64 Q 34 47 33 31 Q 33 21 35 11 Z",
-    edge: "M 35 11 Q 38 3 42 7 Q 46 11 50 5 Q 54 0 58 4 Q 61 7 64 12",
-    innerEdge: "M 36 12 Q 39 5 42 8 Q 46 12 50 7 Q 54 2 58 6 Q 61 9 63 13",
-    crumbs: [
-      { d: "M 57 2 L 60 0 L 58 5 Z", dx: 3, dy: -5 },
-      { d: "M 62 8 L 64 6 L 62 11 Z", dx: 5, dy: -3 },
-      { d: "M 52 0 L 55 -2 L 53 3 Z", dx: 2, dy: -6 },
-    ],
-    origin: { x: 50, y: 10 },
-  },
-  {
-    cutout:
-      "M 34 13 Q 37 6 41 10 Q 45 14 49 8 Q 53 3 57 7 Q 60 10 64 14 L 64 64 L 35 64 Q 33 47 32 31 Q 32 21 34 13 Z",
-    edge: "M 34 13 Q 37 6 41 10 Q 45 14 49 8 Q 53 3 57 7 Q 60 10 64 14",
-    innerEdge: "M 35 14 Q 38 8 41 11 Q 45 15 49 10 Q 53 5 57 9 Q 60 12 63 15",
-    crumbs: [
-      { d: "M 56 4 L 59 2 L 57 7 Z", dx: 2, dy: -4 },
-      { d: "M 61 11 L 64 9 L 62 14 Z", dx: 4, dy: -3 },
-      { d: "M 51 2 L 54 0 L 52 5 Z", dx: 1, dy: -5 },
-    ],
-    origin: { x: 49, y: 12 },
-  },
-  {
-    cutout:
-      "M 36 14 Q 39 7 43 11 Q 47 15 51 9 Q 55 4 59 8 Q 62 11 64 16 L 64 64 L 37 64 Q 35 49 34 33 Q 34 23 36 14 Z",
-    edge: "M 36 14 Q 39 7 43 11 Q 47 15 51 9 Q 55 4 59 8 Q 62 11 64 16",
-    innerEdge: "M 37 15 Q 40 9 43 12 Q 47 16 51 11 Q 55 6 59 10 Q 62 13 63 17",
-    crumbs: [
-      { d: "M 58 3 L 61 1 L 59 6 Z", dx: 3, dy: -5 },
-      { d: "M 63 10 L 64 8 L 63 13 Z", dx: 5, dy: -2 },
-      { d: "M 54 1 L 57 -1 L 55 4 Z", dx: 2, dy: -6 },
-    ],
-    origin: { x: 51, y: 13 },
-  },
-  {
-    cutout:
-      "M 33 12 Q 36 4 40 8 Q 44 12 48 6 Q 52 1 56 5 Q 59 8 64 13 L 64 64 L 34 64 Q 32 46 31 30 Q 31 20 33 12 Z",
-    edge: "M 33 12 Q 36 4 40 8 Q 44 12 48 6 Q 52 1 56 5 Q 59 8 64 13",
-    innerEdge: "M 34 13 Q 37 6 40 9 Q 44 13 48 8 Q 52 3 56 7 Q 59 10 63 14",
-    crumbs: [
-      { d: "M 55 2 L 58 0 L 56 5 Z", dx: 2, dy: -5 },
-      { d: "M 60 9 L 63 7 L 61 12 Z", dx: 4, dy: -3 },
-      { d: "M 50 0 L 53 -2 L 51 3 Z", dx: 1, dy: -6 },
-    ],
-    origin: { x: 48, y: 11 },
-  },
-  {
-    cutout:
-      "M 35 15 Q 38 8 42 12 Q 46 16 50 10 Q 54 5 58 9 Q 61 12 64 17 L 64 64 L 36 64 Q 34 45 33 29 Q 33 22 35 15 Z",
-    edge: "M 35 15 Q 38 8 42 12 Q 46 16 50 10 Q 54 5 58 9 Q 61 12 64 17",
-    innerEdge: "M 36 16 Q 39 10 42 13 Q 46 17 50 12 Q 54 7 58 11 Q 61 14 63 18",
-    crumbs: [
-      { d: "M 57 5 L 60 3 L 58 8 Z", dx: 3, dy: -4 },
-      { d: "M 62 12 L 64 10 L 62 15 Z", dx: 4, dy: -2 },
-      { d: "M 52 3 L 55 1 L 53 6 Z", dx: 2, dy: -5 },
-    ],
-    origin: { x: 50, y: 14 },
-  },
-  {
-    cutout:
-      "M 34 11 Q 37 3 41 7 Q 45 11 49 5 Q 53 0 57 4 Q 60 7 64 12 L 64 64 L 35 64 Q 33 48 32 32 Q 32 22 34 11 Z",
-    edge: "M 34 11 Q 37 3 41 7 Q 45 11 49 5 Q 53 0 57 4 Q 60 7 64 12",
-    innerEdge: "M 35 12 Q 38 5 41 8 Q 45 12 49 7 Q 53 2 57 6 Q 60 9 63 13",
-    crumbs: [
-      { d: "M 56 2 L 59 0 L 57 5 Z", dx: 2, dy: -5 },
-      { d: "M 61 8 L 64 6 L 62 11 Z", dx: 5, dy: -3 },
-      { d: "M 51 1 L 54 -1 L 52 4 Z", dx: 1, dy: -6 },
-    ],
-    origin: { x: 49, y: 10 },
-  },
-];
+    origin: { x: 47 + o, y: 14 + o * 0.3 },
+  };
+}
+
+const BITE_SHAPES: BiteShape[] = Array.from({ length: 10 }, (_, i) => buildBiteShape(i * 0.4));
 
 function ChipShape({ chip, filled }: { chip: Chip; filled: boolean }) {
   const transform =
@@ -269,16 +225,39 @@ function ChipShape({ chip, filled }: { chip: Chip; filled: boolean }) {
       ? `rotate(${chip.rot} ${chip.cx} ${chip.cy})`
       : undefined;
 
+  if (!filled) {
+    return (
+      <path
+        d={chip.d}
+        transform={transform}
+        fill="none"
+        stroke={NAVY}
+        strokeWidth={1.3}
+        strokeOpacity={0.4}
+        strokeLinejoin="miter"
+      />
+    );
+  }
+
   return (
-    <path
-      d={chip.d}
-      transform={transform}
-      fill={filled ? "#1A0E06" : "none"}
-      stroke={filled ? "#0D0704" : NAVY}
-      strokeWidth={filled ? 0.5 : 1.3}
-      strokeOpacity={filled ? 1 : 0.4}
-      strokeLinejoin="miter"
-    />
+    <g transform={transform}>
+      <path
+        d={chip.d}
+        fill="#2A1508"
+        stroke={COOKIE_OUTLINE}
+        strokeWidth={1.2}
+        strokeLinejoin="round"
+      />
+      {chip.cx && chip.cy && (
+        <circle
+          cx={chip.cx - 1}
+          cy={chip.cy - 1}
+          r={1.1}
+          fill="#4A2810"
+          opacity={0.55}
+        />
+      )}
+    </g>
   );
 }
 
@@ -293,27 +272,48 @@ function CookieShape({
 }) {
   const cookiePath = COOKIE_PATHS[index % 3];
   const chips = CHIP_SETS[index % CHIP_SETS.length];
+  const specks = SPECK_SETS[index % SPECK_SETS.length];
   const bite = BITE_SHAPES[index % BITE_SHAPES.length];
   const uid = `c${index}`;
+
+  const outlineCookie = (
+    <>
+      <path
+        d={cookiePath}
+        fill="none"
+        stroke={NAVY}
+        strokeWidth={2.2}
+        strokeOpacity={0.55}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+      {chips.slice(0, 6).map((chip, i) => (
+        <ChipShape key={i} chip={chip} filled={false} />
+      ))}
+    </>
+  );
 
   const filledCookie = (
     <>
       <path
         d={cookiePath}
         fill={`url(#${uid}-base)`}
-        stroke="#8B5520"
-        strokeWidth={2}
+        stroke={COOKIE_OUTLINE}
+        strokeWidth={2.8}
         strokeLinejoin="round"
         strokeLinecap="round"
       />
       <path d={cookiePath} fill={`url(#${uid}-shade)`} />
-      <path
-        d={cookiePath}
-        fill="none"
-        stroke="#7A4818"
-        strokeWidth="1.4"
-        strokeOpacity="0.5"
-      />
+      {specks.map((speck, i) => (
+        <circle
+          key={i}
+          cx={speck.cx}
+          cy={speck.cy}
+          r={speck.r}
+          fill={COOKIE_OUTLINE}
+          opacity={0.35}
+        />
+      ))}
       {chips.map((chip, i) => (
         <ChipShape key={i} chip={chip} filled />
       ))}
@@ -323,47 +323,46 @@ function CookieShape({
   const biteOverlay = filled ? (
     <>
       <path
-        className={justFilled ? "cookie-bite-edge" : undefined}
+        className={justFilled ? "cookie-bite-edge cookie-bite-edge--animate" : "cookie-bite-edge--static"}
         d={bite.edge}
         fill="none"
-        stroke="#5C3410"
-        strokeWidth="1.8"
+        stroke={COOKIE_OUTLINE}
+        strokeWidth="2.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity={justFilled ? undefined : 0.8}
       />
       <path
-        className={justFilled ? "cookie-bite-edge cookie-bite-edge--inner" : "cookie-bite-edge--inner"}
+        className={
+          justFilled
+            ? "cookie-bite-edge cookie-bite-edge--inner cookie-bite-edge--animate"
+            : "cookie-bite-edge--inner cookie-bite-edge--static-inner"
+        }
         d={bite.innerEdge}
         fill="none"
-        stroke="#C8842A"
-        strokeWidth="1"
+        stroke={COOKIE_BODY_DARK}
+        strokeWidth="1.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity={justFilled ? undefined : 0.55}
       />
-      {bite.crumbs.map((crumb, i) => (
-        <path
-          key={i}
-          className={
-            justFilled
-              ? "cookie-bite-crumb cookie-bite-crumb--animate"
-              : "cookie-bite-crumb"
-          }
-          d={crumb.d}
-          fill="#E8A840"
-          stroke="#8B5520"
-          strokeWidth="0.8"
-          strokeLinejoin="round"
-          style={
-            {
-              "--crumb-dx": `${crumb.dx}px`,
-              "--crumb-dy": `${crumb.dy}px`,
-              animationDelay: `${0.42 + i * 0.06}s`,
-            } as CrumbStyle
-          }
-        />
-      ))}
+      {justFilled &&
+        bite.crumbs.map((crumb, i) => (
+          <path
+            key={i}
+            className="cookie-bite-crumb cookie-bite-crumb--animate"
+            d={crumb.d}
+            fill={crumb.fill}
+            stroke={COOKIE_OUTLINE}
+            strokeWidth="0.8"
+            strokeLinejoin="round"
+            style={
+              {
+                "--crumb-dx": `${crumb.dx}px`,
+                "--crumb-dy": `${crumb.dy}px`,
+                animationDelay: `${0.35 + i * 0.07}s`,
+              } as CrumbStyle
+            }
+          />
+        ))}
     </>
   ) : null;
 
@@ -375,14 +374,14 @@ function CookieShape({
       shapeRendering="geometricPrecision"
     >
       <defs>
-        <radialGradient id={`${uid}-base`} cx="40%" cy="35%" r="60%">
-          <stop offset="0%" stopColor="#F5C860" />
-          <stop offset="50%" stopColor="#E8A840" />
-          <stop offset="100%" stopColor="#C8842A" />
+        <radialGradient id={`${uid}-base`} cx="38%" cy="32%" r="58%">
+          <stop offset="0%" stopColor={COOKIE_BODY_LIGHT} />
+          <stop offset="55%" stopColor={COOKIE_BODY} />
+          <stop offset="100%" stopColor={COOKIE_BODY_DARK} />
         </radialGradient>
-        <radialGradient id={`${uid}-shade`} cx="60%" cy="65%" r="50%">
-          <stop offset="0%" stopColor="#A86820" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#A86820" stopOpacity="0" />
+        <radialGradient id={`${uid}-shade`} cx="62%" cy="68%" r="48%">
+          <stop offset="0%" stopColor="#A87830" stopOpacity="0.35" />
+          <stop offset="100%" stopColor="#A87830" stopOpacity="0" />
         </radialGradient>
         <filter id={`${uid}-shadow`} x="-10%" y="-10%" width="120%" height="120%">
           <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#8B5A20" floodOpacity="0.35" />
@@ -406,24 +405,21 @@ function CookieShape({
       <g filter={filled ? `url(#${uid}-shadow)` : undefined}>
         {filled ? (
           <>
-            <g mask={`url(#${uid}-bite-mask)`}>{filledCookie}</g>
+            {justFilled && (
+              <g className="cookie-outline-before-bite" aria-hidden="true">
+                {outlineCookie}
+              </g>
+            )}
+            <g
+              className={justFilled ? "cookie-filled-reveal" : undefined}
+              mask={`url(#${uid}-bite-mask)`}
+            >
+              {filledCookie}
+            </g>
             {biteOverlay}
           </>
         ) : (
-          <>
-            <path
-              d={cookiePath}
-              fill="none"
-              stroke={NAVY}
-              strokeWidth={2.2}
-              strokeOpacity={0.55}
-              strokeLinejoin="round"
-              strokeLinecap="round"
-            />
-            {chips.slice(0, 6).map((chip, i) => (
-              <ChipShape key={i} chip={chip} filled={false} />
-            ))}
-          </>
+          outlineCookie
         )}
       </g>
     </svg>
