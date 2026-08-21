@@ -1,4 +1,6 @@
-import type { CSSProperties } from "react";
+"use client";
+
+import { useEffect, useRef, type CSSProperties } from "react";
 
 type StampIconProps = {
   filled: boolean;
@@ -59,10 +61,23 @@ const BITE_EDGE_ALT =
   "Q 52 12 48 16 Q 44 19 53 22 Q 48 26 55 30 Q 50 34 53 41";
 
 const BITE_INNER_EDGE =
-  "M 45 11 Q 50 12 47 16 Q 44 19 51 22 Q 48 26 53 30 Q 50 34 51 39";
+  "M 44 12 Q 49 13 46 17 Q 43 20 50 23 Q 47 27 52 30 Q 49 33 50 37";
 
 const BITE_INNER_EDGE_ALT =
-  "M 46 12 Q 51 13 48 17 Q 45 20 52 23 Q 49 27 54 31 Q 51 35 52 40";
+  "M 45 13 Q 50 14 47 18 Q 44 21 51 24 Q 48 28 53 31 Q 50 34 51 38";
+
+/** Lighter inner highlight — suggests cookie cross-section thickness */
+const BITE_DEPTH_HIGHLIGHT =
+  "M 43 13 Q 48 14 45 18 Q 42 21 49 24 Q 46 28 51 31 Q 48 34 49 38";
+
+const BITE_DEPTH_HIGHLIGHT_ALT =
+  "M 44 14 Q 49 15 46 19 Q 43 22 50 25 Q 47 29 52 32 Q 49 35 50 39";
+
+const BITE_EDGE_OPEN = [
+  `M 44 9 ${BITE_EDGE}`,
+  `M 45 10 ${BITE_EDGE_ALT}`,
+  `M 44 9 ${BITE_EDGE}`,
+];
 
 /** Cookie outline with one unified bite — stroke follows the scalloped edge */
 const BITTEN_COOKIE_PATHS = [
@@ -72,6 +87,7 @@ const BITTEN_COOKIE_PATHS = [
 ];
 
 const BITE_INNER_EDGE_PATHS = [BITE_INNER_EDGE, BITE_INNER_EDGE_ALT, BITE_INNER_EDGE];
+const BITE_DEPTH_HIGHLIGHT_PATHS = [BITE_DEPTH_HIGHLIGHT, BITE_DEPTH_HIGHLIGHT_ALT, BITE_DEPTH_HIGHLIGHT];
 
 const BITE_CRUMBS = [
   [
@@ -207,7 +223,9 @@ const CHIP_SETS: Chip[][] = [
 type BiteData = {
   bittenPath: string;
   fullPath: string;
+  edgeOpen: string;
   innerEdge: string;
+  depthHighlight: string;
   crumbs: { d: string; dx: number; dy: number; fill: string }[];
   origin: { x: number; y: number };
 };
@@ -217,7 +235,9 @@ function getBiteData(index: number): BiteData {
   return {
     bittenPath: BITTEN_COOKIE_PATHS[shape],
     fullPath: COOKIE_PATHS[shape],
+    edgeOpen: BITE_EDGE_OPEN[shape],
     innerEdge: BITE_INNER_EDGE_PATHS[shape],
+    depthHighlight: BITE_DEPTH_HIGHLIGHT_PATHS[shape],
     crumbs: BITE_CRUMBS[shape],
     origin: { x: 50, y: 20 },
   };
@@ -327,15 +347,34 @@ function CookieShape({
             <ChipShape key={i} chip={chip} filled />
           ))}
       </g>
-      <path
-        d={bite.innerEdge}
-        fill="none"
-        stroke={COOKIE_BODY_DARK}
-        strokeWidth={1.3}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={0.7}
-      />
+      <g filter={`url(#${uid}-bite-depth)`}>
+        <path
+          d={bite.edgeOpen}
+          fill="none"
+          stroke="#2A1508"
+          strokeWidth={1.8}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.55}
+        />
+        <path
+          d={bite.innerEdge}
+          fill="none"
+          stroke="#3D2314"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d={bite.depthHighlight}
+          fill="none"
+          stroke={COOKIE_BODY_LIGHT}
+          strokeWidth={1.4}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity={0.85}
+        />
+      </g>
     </>
   );
 
@@ -382,6 +421,9 @@ function CookieShape({
         <filter id={`${uid}-shadow`} x="-10%" y="-10%" width="120%" height="120%">
           <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#8B5A20" floodOpacity="0.35" />
         </filter>
+        <filter id={`${uid}-bite-depth`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="-0.6" dy="0.8" stdDeviation="0.4" floodColor="#2A1508" floodOpacity="0.45" />
+        </filter>
         {filled && (
           <clipPath id={`${uid}-clip`}>
             <path d={bittenPath} />
@@ -397,14 +439,7 @@ function CookieShape({
                 {outlineCookie}
               </g>
             )}
-            <g
-              className={justFilled ? "cookie-filled-reveal cookie-bite-draw" : undefined}
-              style={
-                justFilled
-                  ? { transformOrigin: `${bite.origin.x}px ${bite.origin.y}px` }
-                  : undefined
-              }
-            >
+            <g className={justFilled ? "cookie-filled-reveal" : undefined}>
               {filledCookieBody}
             </g>
             {biteOverlay}
@@ -418,6 +453,23 @@ function CookieShape({
 }
 
 export function StampIcon({ filled, index = 0, justFilled = false }: StampIconProps) {
+  const skipFilledBounce = useRef(false);
+
+  useEffect(() => {
+    if (justFilled) {
+      skipFilledBounce.current = true;
+    }
+  }, [justFilled]);
+
+  const cookieClass =
+    filled
+      ? justFilled
+        ? "stamp-cookie stamp-cookie--just-filled"
+        : skipFilledBounce.current
+          ? "stamp-cookie"
+          : "stamp-cookie stamp-cookie--filled"
+      : "stamp-cookie";
+
   return (
     <div
       className={`stamp-slot ${filled ? "stamp-slot--filled" : ""} ${
@@ -425,16 +477,7 @@ export function StampIcon({ filled, index = 0, justFilled = false }: StampIconPr
       }`}
       style={{ animationDelay: `${0.55 + index * 0.05}s` }}
     >
-      <div
-        className={
-          filled
-            ? justFilled
-              ? "stamp-cookie stamp-cookie--just-filled"
-              : "stamp-cookie stamp-cookie--filled"
-            : "stamp-cookie"
-        }
-        style={{ animationDelay: `${0.6 + index * 0.05}s` }}
-      >
+      <div className={cookieClass} style={{ animationDelay: `${0.6 + index * 0.05}s` }}>
         <CookieShape filled={filled} index={index} justFilled={justFilled} />
       </div>
     </div>
