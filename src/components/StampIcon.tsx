@@ -48,6 +48,44 @@ const COOKIE_PATHS = [
   "M33 6 C41 7 49 11 53 19 C57 27 55 36 49 43 C43 50 34 55 25 53 C16 51 9 44 7 35 C5 26 10 17 18 11 C24 7 28 5 33 6 Z",
 ];
 
+/** Scalloped bite edge — three semicircular tooth marks on the right side */
+const BITE_EDGE_PATHS = [
+  "M 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 50 43",
+  "M 47 10 A 5 5 0 0 0 47 20 A 5 5 0 0 1 47 30 A 5 5 0 0 0 47 40 L 51 44",
+  "M 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 49 42",
+];
+
+/** Cookie outline with bite built in — stroke follows the scalloped edge */
+const BITTEN_COOKIE_PATHS = [
+  "M 32 7 C 39 5 47 8 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 50 43 C 52 42 46 48 38 52 C 30 56 20 54 14 48 C 8 42 6 33 9 24 C 12 15 20 9 32 7 Z",
+  "M 30 8 C 38 6 46 9 47 10 A 5 5 0 0 0 47 20 A 5 5 0 0 1 47 30 A 5 5 0 0 0 47 40 L 51 44 C 48 46 40 53 31 54 C 22 55 13 50 9 41 C 5 32 7 22 13 15 C 19 8 24 9 30 8 Z",
+  "M 33 6 C 41 7 49 11 46 9 A 5 5 0 0 0 46 19 A 5 5 0 0 1 46 29 A 5 5 0 0 0 46 39 L 49 42 C 49 43 43 50 34 55 C 25 53 16 51 9 44 C 7 35 5 26 10 17 C 18 11 24 7 28 5 C 31 5 33 6 33 6 Z",
+];
+
+const BITE_INNER_EDGE_PATHS = [
+  "M 47 12 A 3.5 3.5 0 0 0 47 19 A 3.5 3.5 0 0 1 47 26 A 3.5 3.5 0 0 0 47 33 A 3.5 3.5 0 0 1 47 40",
+  "M 48 13 A 3.5 3.5 0 0 0 48 20 A 3.5 3.5 0 0 1 48 27 A 3.5 3.5 0 0 0 48 34 A 3.5 3.5 0 0 1 48 41",
+  "M 47 12 A 3.5 3.5 0 0 0 47 19 A 3.5 3.5 0 0 1 47 26 A 3.5 3.5 0 0 0 47 33 A 3.5 3.5 0 0 1 47 40",
+];
+
+const BITE_CRUMBS = [
+  [
+    { d: "M 52 3 L 56 1 L 54 7 L 50 6 Z", dx: 3, dy: -6, fill: COOKIE_BODY_LIGHT },
+    { d: "M 58 9 L 61 7 L 59 12 Z", dx: 5, dy: -3, fill: COOKIE_OUTLINE },
+    { d: "M 54 13 L 57 11 L 55 15 Z", dx: 4, dy: -1, fill: COOKIE_OUTLINE },
+  ],
+  [
+    { d: "M 53 4 L 57 2 L 55 8 L 51 7 Z", dx: 3, dy: -5, fill: COOKIE_BODY_LIGHT },
+    { d: "M 59 10 L 62 8 L 60 13 Z", dx: 5, dy: -3, fill: COOKIE_OUTLINE },
+    { d: "M 55 14 L 58 12 L 56 16 Z", dx: 4, dy: -2, fill: COOKIE_OUTLINE },
+  ],
+  [
+    { d: "M 51 2 L 55 0 L 53 6 L 49 5 Z", dx: 3, dy: -6, fill: COOKIE_BODY_LIGHT },
+    { d: "M 57 8 L 60 6 L 58 11 Z", dx: 5, dy: -4, fill: COOKIE_OUTLINE },
+    { d: "M 53 12 L 56 10 L 54 14 Z", dx: 4, dy: -2, fill: COOKIE_OUTLINE },
+  ],
+];
+
 /** Angular, irregular chip shapes — chunks, shards, crescents, broken pieces */
 type Chip = { d: string; rot?: number; cx?: number; cy?: number };
 
@@ -161,63 +199,26 @@ const CHIP_SETS: Chip[][] = [
   ],
 ];
 
-type BiteShape = {
-  cutout: string;
-  edge: string;
+type BiteData = {
+  bittenPath: string;
+  fullPath: string;
+  biteEdge: string;
   innerEdge: string;
   crumbs: { d: string; dx: number; dy: number; fill: string }[];
   origin: { x: number; y: number };
 };
 
-/** Three scalloped tooth marks — upper-right bite (variations per stamp) */
-function buildBiteShape(offset: number): BiteShape {
-  const o = offset * 0.8;
+function getBiteData(index: number): BiteData {
+  const shape = index % 3;
   return {
-    cutout: `M ${39 + o} ${9 + o * 0.3}
-      Q ${42 + o} ${4 + o * 0.2} ${45 + o} ${10 + o * 0.3}
-      Q ${48 + o} ${16 + o * 0.2} ${44 + o} ${18 + o * 0.3}
-      Q ${40 + o} ${20 + o * 0.2} ${46 + o} ${23 + o * 0.3}
-      Q ${52 + o} ${26 + o * 0.2} ${48 + o} ${29 + o * 0.3}
-      Q ${44 + o} ${32 + o * 0.2} ${50 + o} ${34 + o * 0.3}
-      L 64 36 L 64 64 L ${37 + o} 64
-      Q ${35 + o} 48 ${36 + o} 32 Q ${37 + o} 18 ${39 + o} ${9 + o * 0.3} Z`,
-    edge: `M ${39 + o} ${9 + o * 0.3}
-      Q ${42 + o} ${4 + o * 0.2} ${45 + o} ${10 + o * 0.3}
-      Q ${48 + o} ${16 + o * 0.2} ${44 + o} ${18 + o * 0.3}
-      Q ${40 + o} ${20 + o * 0.2} ${46 + o} ${23 + o * 0.3}
-      Q ${52 + o} ${26 + o * 0.2} ${48 + o} ${29 + o * 0.3}
-      Q ${44 + o} ${32 + o * 0.2} ${50 + o} ${34 + o * 0.3}`,
-    innerEdge: `M ${40 + o} ${10 + o * 0.3}
-      Q ${43 + o} ${6 + o * 0.2} ${45 + o} ${11 + o * 0.3}
-      Q ${47 + o} ${16 + o * 0.2} ${44 + o} ${18 + o * 0.3}
-      Q ${41 + o} ${20 + o * 0.2} ${46 + o} ${23 + o * 0.3}
-      Q ${50 + o} ${26 + o * 0.2} ${47 + o} ${29 + o * 0.3}
-      Q ${44 + o} ${31 + o * 0.2} ${49 + o} ${33 + o * 0.3}`,
-    crumbs: [
-      {
-        d: `M ${52 + o} ${2 + o} L ${56 + o} ${0 + o} L ${54 + o} ${6 + o} L ${50 + o} ${5 + o} Z`,
-        dx: 3,
-        dy: -7,
-        fill: COOKIE_BODY_LIGHT,
-      },
-      {
-        d: `M ${58 + o} ${8 + o} L ${61 + o} ${6 + o} L ${59 + o} ${11 + o} Z`,
-        dx: 5,
-        dy: -4,
-        fill: COOKIE_OUTLINE,
-      },
-      {
-        d: `M ${54 + o} ${12 + o} L ${57 + o} ${10 + o} L ${55 + o} ${14 + o} Z`,
-        dx: 4,
-        dy: -2,
-        fill: COOKIE_OUTLINE,
-      },
-    ],
-    origin: { x: 47 + o, y: 14 + o * 0.3 },
+    bittenPath: BITTEN_COOKIE_PATHS[shape],
+    fullPath: COOKIE_PATHS[shape],
+    biteEdge: BITE_EDGE_PATHS[shape],
+    innerEdge: BITE_INNER_EDGE_PATHS[shape],
+    crumbs: BITE_CRUMBS[shape],
+    origin: { x: 47, y: 22 },
   };
 }
-
-const BITE_SHAPES: BiteShape[] = Array.from({ length: 10 }, (_, i) => buildBiteShape(i * 0.4));
 
 function ChipShape({ chip, filled }: { chip: Chip; filled: boolean }) {
   const transform =
@@ -270,10 +271,12 @@ function CookieShape({
   index: number;
   justFilled?: boolean;
 }) {
-  const cookiePath = COOKIE_PATHS[index % 3];
+  const shapeIndex = index % 3;
+  const cookiePath = COOKIE_PATHS[shapeIndex];
+  const bittenPath = BITTEN_COOKIE_PATHS[shapeIndex];
   const chips = CHIP_SETS[index % CHIP_SETS.length];
   const specks = SPECK_SETS[index % SPECK_SETS.length];
-  const bite = BITE_SHAPES[index % BITE_SHAPES.length];
+  const bite = getBiteData(index);
   const uid = `c${index}`;
 
   const outlineCookie = (
@@ -293,76 +296,64 @@ function CookieShape({
     </>
   );
 
-  const filledCookie = (
+  const filledCookieBody = (
     <>
       <path
-        d={cookiePath}
+        d={bittenPath}
         fill={`url(#${uid}-base)`}
         stroke={COOKIE_OUTLINE}
         strokeWidth={2.8}
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      <path d={cookiePath} fill={`url(#${uid}-shade)`} />
-      {specks.map((speck, i) => (
-        <circle
-          key={i}
-          cx={speck.cx}
-          cy={speck.cy}
-          r={speck.r}
-          fill={COOKIE_OUTLINE}
-          opacity={0.35}
-        />
-      ))}
-      {chips.map((chip, i) => (
-        <ChipShape key={i} chip={chip} filled />
-      ))}
-    </>
-  );
-
-  const biteOverlay = filled ? (
-    <>
+      <path d={bittenPath} fill={`url(#${uid}-shade)`} stroke="none" />
+      <g clipPath={`url(#${uid}-clip)`}>
+        {specks.map((speck, i) => (
+          <circle
+            key={i}
+            cx={speck.cx}
+            cy={speck.cy}
+            r={speck.r}
+            fill={COOKIE_OUTLINE}
+            opacity={0.35}
+          />
+        ))}
+        {chips.map((chip, i) => (
+          <ChipShape key={i} chip={chip} filled />
+        ))}
+      </g>
       <path
-        className={justFilled ? "cookie-bite-edge cookie-bite-edge--animate" : "cookie-bite-edge--static"}
-        d={bite.edge}
-        fill="none"
-        stroke={COOKIE_OUTLINE}
-        strokeWidth="2.2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        className={
-          justFilled
-            ? "cookie-bite-edge cookie-bite-edge--inner cookie-bite-edge--animate"
-            : "cookie-bite-edge--inner cookie-bite-edge--static-inner"
-        }
         d={bite.innerEdge}
         fill="none"
         stroke={COOKIE_BODY_DARK}
-        strokeWidth="1.2"
+        strokeWidth={1.3}
         strokeLinecap="round"
         strokeLinejoin="round"
+        opacity={0.7}
       />
-      {justFilled &&
-        bite.crumbs.map((crumb, i) => (
-          <path
-            key={i}
-            className="cookie-bite-crumb cookie-bite-crumb--animate"
-            d={crumb.d}
-            fill={crumb.fill}
-            stroke={COOKIE_OUTLINE}
-            strokeWidth="0.8"
-            strokeLinejoin="round"
-            style={
-              {
-                "--crumb-dx": `${crumb.dx}px`,
-                "--crumb-dy": `${crumb.dy}px`,
-                animationDelay: `${0.35 + i * 0.07}s`,
-              } as CrumbStyle
-            }
-          />
-        ))}
+    </>
+  );
+
+  const biteOverlay = justFilled ? (
+    <>
+      {bite.crumbs.map((crumb, i) => (
+        <path
+          key={i}
+          className="cookie-bite-crumb cookie-bite-crumb--animate"
+          d={crumb.d}
+          fill={crumb.fill}
+          stroke={COOKIE_OUTLINE}
+          strokeWidth="0.8"
+          strokeLinejoin="round"
+          style={
+            {
+              "--crumb-dx": `${crumb.dx}px`,
+              "--crumb-dy": `${crumb.dy}px`,
+              animationDelay: `${0.35 + i * 0.07}s`,
+            } as CrumbStyle
+          }
+        />
+      ))}
     </>
   ) : null;
 
@@ -387,18 +378,9 @@ function CookieShape({
           <feDropShadow dx="0" dy="1" stdDeviation="1" floodColor="#8B5A20" floodOpacity="0.35" />
         </filter>
         {filled && (
-          <mask id={`${uid}-bite-mask`}>
-            <rect width="64" height="64" fill="white" />
-            <path d={cookiePath} fill="white" />
-            <g
-              className={justFilled ? "cookie-bite-hole cookie-bite-hole--animate" : "cookie-bite-hole"}
-              style={{
-                transformOrigin: `${bite.origin.x}px ${bite.origin.y}px`,
-              }}
-            >
-              <path d={bite.cutout} fill="black" />
-            </g>
-          </mask>
+          <clipPath id={`${uid}-clip`}>
+            <path d={bittenPath} />
+          </clipPath>
         )}
       </defs>
 
@@ -411,10 +393,14 @@ function CookieShape({
               </g>
             )}
             <g
-              className={justFilled ? "cookie-filled-reveal" : undefined}
-              mask={`url(#${uid}-bite-mask)`}
+              className={justFilled ? "cookie-filled-reveal cookie-bite-draw" : undefined}
+              style={
+                justFilled
+                  ? { transformOrigin: `${bite.origin.x}px ${bite.origin.y}px` }
+                  : undefined
+              }
             >
-              {filledCookie}
+              {filledCookieBody}
             </g>
             {biteOverlay}
           </>
