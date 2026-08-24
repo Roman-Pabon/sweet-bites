@@ -21,6 +21,7 @@ function AvatarFallback({ username }: { username: string }) {
 export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
@@ -80,6 +81,7 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
     }
   }
 
@@ -126,6 +128,13 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
           <input
             ref={fileInputRef}
             type="file"
+            accept="image/jpeg,image/png,image/webp,image/*"
+            className="hidden"
+            onChange={handlePhotoChange}
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
             accept="image/jpeg,image/png,image/webp"
             capture="user"
             className="hidden"
@@ -139,12 +148,24 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
             className="flex w-full min-h-[52px] items-center justify-center gap-3 rounded-2xl bg-[var(--sweet-navy)] px-4 py-3.5 text-base font-semibold text-[var(--sweet-gold)] active:bg-[var(--sweet-navy-light)] disabled:opacity-60"
           >
             <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" strokeLinecap="round" />
-              <path d="M3 16.5V18a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1.5" strokeLinecap="round" />
-              <path d="M16 6l-4-4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M12 2v12" strokeLinecap="round" />
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="M21 15l-5-5L5 21" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            {uploading ? "Subiendo..." : "Cambiar foto de perfil"}
+            {uploading ? "Subiendo..." : "Elegir de la galería"}
+          </button>
+
+          <button
+            type="button"
+            disabled={uploading}
+            onClick={() => cameraInputRef.current?.click()}
+            className="flex w-full min-h-[52px] items-center justify-center gap-3 rounded-2xl border-2 border-[var(--sweet-navy)]/20 px-4 py-3.5 text-base font-semibold text-[var(--sweet-navy)] active:bg-[var(--sweet-navy)]/5 disabled:opacity-60"
+          >
+            <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
+            {uploading ? "Subiendo..." : "Tomar foto"}
           </button>
 
           <button
