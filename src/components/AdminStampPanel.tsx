@@ -23,12 +23,13 @@ export function AdminStampPanel({
 }: AdminStampPanelProps) {
   const router = useRouter();
   const [customer, setCustomer] = useState(initialCustomer);
-  const [loading, setLoading] = useState(false);
+  const [loadingAction, setLoadingAction] = useState<"stamp" | "unstamp" | "redeem" | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const loading = loadingAction !== null;
 
   async function handleStamp() {
-    setLoading(true);
+    setLoadingAction("stamp");
     setError("");
     setMessage("");
 
@@ -54,12 +55,45 @@ export function AdminStampPanel({
     } catch {
       setError("Error de conexión");
     } finally {
-      setLoading(false);
+      setLoadingAction(null);
+    }
+  }
+
+  async function handleUnstamp() {
+    setLoadingAction("unstamp");
+    setError("");
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/admin/unstamp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "No se pudo quitar el sello");
+        return;
+      }
+
+      setCustomer(data.user);
+      if (data.removedReward) {
+        setMessage(
+          `Marca quitada. Ahora tiene ${data.user.stamps} de ${TOTAL_STAMPS} galletas y se deshizo el premio.`
+        );
+      } else {
+        setMessage(`Marca quitada. Ahora tiene ${data.user.stamps} de ${TOTAL_STAMPS} galletas.`);
+      }
+    } catch {
+      setError("Error de conexión");
+    } finally {
+      setLoadingAction(null);
     }
   }
 
   async function handleRedeem() {
-    setLoading(true);
+    setLoadingAction("redeem");
     setError("");
     setMessage("");
 
@@ -81,7 +115,7 @@ export function AdminStampPanel({
     } catch {
       setError("Error de conexión");
     } finally {
-      setLoading(false);
+      setLoadingAction(null);
     }
   }
 
@@ -142,7 +176,15 @@ export function AdminStampPanel({
         disabled={loading || cardComplete}
         className="flex w-full min-h-[56px] items-center justify-center gap-2 rounded-2xl bg-[var(--sweet-gold)] px-4 py-4 text-lg font-bold text-[var(--sweet-navy)] shadow-lg active:scale-[0.98] disabled:opacity-50"
       >
-        {loading ? "Marcando..." : "🍪 Marcar galleta"}
+        {loadingAction === "stamp" ? "Marcando..." : "🍪 Marcar galleta"}
+      </button>
+
+      <button
+        onClick={handleUnstamp}
+        disabled={loading || customer.stamps <= 0}
+        className="mt-3 flex w-full min-h-[56px] items-center justify-center gap-2 rounded-2xl bg-transparent px-4 py-4 text-lg font-bold text-[var(--sweet-navy)] ring-2 ring-[var(--sweet-navy)]/25 active:scale-[0.98] disabled:opacity-50"
+      >
+        {loadingAction === "unstamp" ? "Quitando..." : "Quitar marca"}
       </button>
 
       {cardComplete && (
@@ -155,7 +197,7 @@ export function AdminStampPanel({
             disabled={loading || customer.rewards < 1}
             className="mt-3 flex w-full min-h-[56px] items-center justify-center gap-2 rounded-2xl bg-[var(--sweet-navy)] px-4 py-4 text-lg font-bold text-[var(--sweet-gold)] shadow-lg ring-2 ring-[var(--sweet-gold)] active:scale-[0.98] disabled:opacity-50"
           >
-            {loading ? "Reiniciando..." : "Reiniciar tarjeta"}
+            {loadingAction === "redeem" ? "Reiniciando..." : "Reiniciar tarjeta"}
           </button>
         </>
       )}

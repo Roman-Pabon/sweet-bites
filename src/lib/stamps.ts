@@ -36,6 +36,38 @@ export async function addStampToUser(userId: number) {
   };
 }
 
+export async function removeStampFromUser(userId: number) {
+  const db = await getDb();
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
+  if (!user) {
+    return { error: "Usuario no encontrado" as const };
+  }
+
+  if (user.stamps <= 0) {
+    return { error: "Este cliente no tiene sellos para quitar" as const };
+  }
+
+  let stamps = user.stamps - 1;
+  let rewards = user.rewards;
+  let removedReward = false;
+
+  // Si se deshace el 10.º sello, también se quita el premio pendiente de esa tarjeta.
+  if (user.stamps >= TOTAL_STAMPS && rewards > 0) {
+    rewards -= 1;
+    removedReward = true;
+  }
+
+  db.prepare("UPDATE users SET stamps = ?, rewards = ? WHERE id = ?").run(stamps, rewards, userId);
+
+  const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
+
+  return {
+    user: toPublicUser(updated),
+    removedReward,
+  };
+}
+
 export async function redeemPrizeAndResetCard(userId: number) {
   const db = await getDb();
 
