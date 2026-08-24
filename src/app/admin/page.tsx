@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { AdminUsersNavButton } from "@/components/AdminUsersNavButton";
+import { AdminTelegramTestButton } from "@/components/AdminTelegramTestButton";
 
 export default async function AdminPage() {
   const admin = await getAdminSession();
@@ -25,6 +26,7 @@ export default async function AdminPage() {
             Apunta la cámara al QR en la tarjeta del cliente y pulsa &quot;Marcar galleta&quot;.
           </p>
         </div>
+        <AdminTelegramTestButton />
       </div>
     </div>
   );

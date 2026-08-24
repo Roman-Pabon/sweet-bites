@@ -77,10 +77,24 @@ En Railway → servicio → **Variables** → añade:
 | `NEXT_PUBLIC_APP_URL` | Tu URL de Railway, ej. `https://sweet-bites-production-xxxx.up.railway.app` |
 | `JWT_SECRET` | Una contraseña larga aleatoria (ej. genera una en https://randomkeygen.com) |
 | `DATA_DIR` | `/app/data` |
+| `TELEGRAM_BOT_TOKEN` | (Opcional) Token del bot de Telegram para avisos 9/10 |
+| `TELEGRAM_CHAT_ID` | (Opcional) Tu chat id de Telegram (varios separados por coma) |
 
 Guarda. Railway redeployará solo.
 
 > **Importante:** `NEXT_PUBLIC_APP_URL` debe ser exactamente la URL pública, **sin** barra al final. Así los QR de las tarjetas funcionan al escanearlos.
+
+### Avisos por Telegram (opcional)
+
+Para que te llegue un mensaje al celular cuando alguien llegue a **9/10** o complete **10/10**:
+
+1. En Telegram habla con [@BotFather](https://t.me/BotFather) → `/newbot` → copia el **token**.
+2. Abre tu bot nuevo y pulsa **Start** (o envíale cualquier mensaje).
+3. En el navegador abre (cambia `TOKEN`):
+   `https://api.telegram.org/botTOKEN/getUpdates`
+4. Busca `"chat":{"id": NUMERO` — ese número es tu `TELEGRAM_CHAT_ID`.
+5. En Railway añade `TELEGRAM_BOT_TOKEN` y `TELEGRAM_CHAT_ID`.
+6. Entra a `/admin` y pulsa **Probar aviso de Telegram**.
 
 ---
 

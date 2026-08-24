@@ -3,6 +3,7 @@ import path from "path";
 import { getDb, type User, toPublicUser } from "./db";
 import { TOTAL_STAMPS } from "./constants";
 import { getAvatarsDir } from "./paths";
+import { notifyStampMilestone } from "./telegram";
 
 export { TOTAL_STAMPS };
 
@@ -32,6 +33,11 @@ export async function addStampToUser(userId: number) {
   db.prepare("UPDATE users SET stamps = ?, rewards = ? WHERE id = ?").run(stamps, rewards, userId);
 
   const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
+
+  // No bloquea el marcado si Telegram falla o no está configurado.
+  void notifyStampMilestone(updated.username, updated.stamps).catch((error) => {
+    console.error("[telegram] Error al notificar hito:", error);
+  });
 
   return {
     user: toPublicUser(updated),
