@@ -38,10 +38,11 @@ class Statement {
 
   run(...params: BindParams) {
     this.db.run(this.sql, params);
+    const changes = (this.db as SqlJsDatabase & { getRowsModified: () => number }).getRowsModified();
     const result = this.db.exec("SELECT last_insert_rowid() AS id");
     const lastInsertRowid = Number(result[0]?.values[0]?.[0] ?? 0);
     this.persist();
-    return { lastInsertRowid };
+    return { lastInsertRowid, changes };
   }
 }
 
@@ -186,6 +187,24 @@ export async function getDb() {
   }
 
   return initPromise;
+}
+
+/** Serializa lecturas/escrituras en esta instancia para evitar carreras con sql.js. */
+let dbLock: Promise<unknown> = Promise.resolve();
+
+export async function withDbLock<T>(fn: () => Promise<T> | T): Promise<T> {
+  const previous = dbLock;
+  let release!: () => void;
+  dbLock = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  await previous.catch(() => undefined);
+  try {
+    return await fn();
+  } finally {
+    release();
+  }
 }
 
 export type User = {

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { getDb, type User, toPublicUser } from "./db";
+import { getDb, withDbLock, type User, toPublicUser } from "./db";
 import { TOTAL_STAMPS } from "./constants";
 import { getAvatarsDir } from "./paths";
 import { notifyStampMilestone } from "./telegram";
@@ -8,93 +8,101 @@ import { notifyStampMilestone } from "./telegram";
 export { TOTAL_STAMPS };
 
 export async function addStampToUser(userId: number) {
-  const db = await getDb();
+  return withDbLock(async () => {
+    const db = await getDb();
 
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
-  if (!user) {
-    return { error: "Usuario no encontrado" as const };
-  }
+    const result = db
+      .prepare(
+        `UPDATE users
+         SET stamps = stamps + 1,
+             rewards = CASE WHEN stamps + 1 >= ? THEN rewards + 1 ELSE rewards END
+         WHERE id = ? AND stamps < ?`
+      )
+      .run(TOTAL_STAMPS, userId, TOTAL_STAMPS);
 
-  if (user.stamps >= TOTAL_STAMPS) {
+    if (!result.changes) {
+      const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
+      if (!user) {
+        return { error: "Usuario no encontrado" as const };
+      }
+      return {
+        error:
+          "Este cliente ya completó sus 10 sellos. Entrega el premio y reinicia la tarjeta antes de seguir." as const,
+      };
+    }
+
+    const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
+    const earnedReward = updated.stamps >= TOTAL_STAMPS;
+
+    void notifyStampMilestone(updated.username, updated.stamps).catch((error) => {
+      console.error("[telegram] Error al notificar hito:", error);
+    });
+
     return {
-      error: "Este cliente ya completó sus 10 sellos. Entrega el premio y reinicia la tarjeta antes de seguir." as const,
+      user: toPublicUser(updated),
+      earnedReward,
     };
-  }
-
-  let stamps = user.stamps + 1;
-  let rewards = user.rewards;
-  let earnedReward = false;
-
-  if (stamps >= TOTAL_STAMPS) {
-    rewards += 1;
-    earnedReward = true;
-  }
-
-  db.prepare("UPDATE users SET stamps = ?, rewards = ? WHERE id = ?").run(stamps, rewards, userId);
-
-  const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
-
-  // No bloquea el marcado si Telegram falla o no está configurado.
-  void notifyStampMilestone(updated.username, updated.stamps).catch((error) => {
-    console.error("[telegram] Error al notificar hito:", error);
   });
-
-  return {
-    user: toPublicUser(updated),
-    earnedReward,
-  };
 }
 
 export async function removeStampFromUser(userId: number) {
-  const db = await getDb();
+  return withDbLock(async () => {
+    const db = await getDb();
 
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
-  if (!user) {
-    return { error: "Usuario no encontrado" as const };
-  }
+    const before = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
+    if (!before) {
+      return { error: "Usuario no encontrado" as const };
+    }
 
-  if (user.stamps <= 0) {
-    return { error: "Este cliente no tiene sellos para quitar" as const };
-  }
+    if (before.stamps <= 0) {
+      return { error: "Este cliente no tiene sellos para quitar" as const };
+    }
 
-  let stamps = user.stamps - 1;
-  let rewards = user.rewards;
-  let removedReward = false;
+    const result = db
+      .prepare(
+        `UPDATE users
+         SET stamps = stamps - 1,
+             rewards = CASE
+               WHEN stamps >= ? AND rewards > 0 THEN rewards - 1
+               ELSE rewards
+             END
+         WHERE id = ? AND stamps > 0`
+      )
+      .run(TOTAL_STAMPS, userId);
 
-  // Si se deshace el 10.º sello, también se quita el premio pendiente de esa tarjeta.
-  if (user.stamps >= TOTAL_STAMPS && rewards > 0) {
-    rewards -= 1;
-    removedReward = true;
-  }
+    if (!result.changes) {
+      return { error: "Este cliente no tiene sellos para quitar" as const };
+    }
 
-  db.prepare("UPDATE users SET stamps = ?, rewards = ? WHERE id = ?").run(stamps, rewards, userId);
+    const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
+    const removedReward = before.stamps >= TOTAL_STAMPS && updated.rewards < before.rewards;
 
-  const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
-
-  return {
-    user: toPublicUser(updated),
-    removedReward,
-  };
+    return {
+      user: toPublicUser(updated),
+      removedReward,
+    };
+  });
 }
 
 export async function redeemPrizeAndResetCard(userId: number) {
-  const db = await getDb();
+  return withDbLock(async () => {
+    const db = await getDb();
 
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
-  if (!user) {
-    return { error: "Usuario no encontrado" as const };
-  }
+    const result = db
+      .prepare("UPDATE users SET stamps = 0 WHERE id = ? AND stamps >= ?")
+      .run(userId, TOTAL_STAMPS);
 
-  if (user.stamps < TOTAL_STAMPS) {
-    return { error: "La tarjeta aún no está completa" as const };
-  }
+    if (!result.changes) {
+      const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
+      if (!user) {
+        return { error: "Usuario no encontrado" as const };
+      }
+      return { error: "La tarjeta aún no está completa" as const };
+    }
 
-  // Solo reinicia sellos. El contador de premios es acumulativo y no se resta.
-  db.prepare("UPDATE users SET stamps = ? WHERE id = ?").run(0, userId);
-
-  const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
-
-  return { user: toPublicUser(updated) };
+    const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
+    return { user: toPublicUser(updated) };
+  });
 }
 
 export async function getUserByStampToken(token: string) {
@@ -126,22 +134,24 @@ export async function listRegisteredUsers() {
 }
 
 export async function deleteRegisteredUser(userId: number) {
-  const db = await getDb();
+  return withDbLock(async () => {
+    const db = await getDb();
 
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
-  if (!user) {
-    return { error: "Usuario no encontrado" as const };
-  }
-
-  db.prepare("DELETE FROM users WHERE id = ?").run(userId);
-
-  const avatarsDir = getAvatarsDir();
-  for (const ext of ["jpg", "jpeg", "png", "webp", "gif"]) {
-    const filepath = path.join(avatarsDir, `${userId}.${ext}`);
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
+    if (!user) {
+      return { error: "Usuario no encontrado" as const };
     }
-  }
 
-  return { ok: true as const, username: user.username };
+    db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+
+    const avatarsDir = getAvatarsDir();
+    for (const ext of ["jpg", "jpeg", "png", "webp", "gif"]) {
+      const filepath = path.join(avatarsDir, `${userId}.${ext}`);
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+      }
+    }
+
+    return { ok: true as const, username: user.username };
+  });
 }

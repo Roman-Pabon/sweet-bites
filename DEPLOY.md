@@ -75,14 +75,17 @@ En Railway → servicio → **Variables** → añade:
 | Variable | Valor |
 |----------|--------|
 | `NEXT_PUBLIC_APP_URL` | Tu URL de Railway, ej. `https://sweet-bites-production-xxxx.up.railway.app` |
-| `JWT_SECRET` | Una contraseña larga aleatoria (ej. genera una en https://randomkeygen.com) |
+| `JWT_SECRET` | **Obligatorio.** Contraseña larga aleatoria (≥32 caracteres). Sin esto la app no arranca bien en producción. |
 | `DATA_DIR` | `/app/data` |
+| `SETUP_SECRET` | Solo para crear el primer admin. **Bórralo después.** |
 | `TELEGRAM_BOT_TOKEN` | (Opcional) Token del bot de Telegram para avisos 9/10 |
 | `TELEGRAM_CHAT_ID` | (Opcional) Tu chat id de Telegram (varios separados por coma) |
 
 Guarda. Railway redeployará solo.
 
 > **Importante:** `NEXT_PUBLIC_APP_URL` debe ser exactamente la URL pública, **sin** barra al final. Así los QR de las tarjetas funcionan al escanearlos.
+
+> **Seguridad:** usa **1 sola réplica** en Railway (no auto-scale). El volumen debe estar en `/app/data`. Las contraseñas van con bcrypt; los sellos solo los marca un admin logueado; cada usuario tiene un QR único largo e imposible de adivinar; la sesión de estudiante dura **30 días** (no tienen que iniciar sesión todo el rato).
 
 ### Avisos por Telegram (opcional)
 

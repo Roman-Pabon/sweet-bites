@@ -3,8 +3,18 @@ import bcrypt from "bcryptjs";
 import { getDb } from "@/lib/db";
 import { createSession } from "@/lib/auth";
 import { generateStampToken } from "@/lib/tokens";
+import { clientIp } from "@/lib/security";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = rateLimit(`register:${clientIp(request)}`, 8, 10 * 60 * 1000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Demasiados registros desde esta red. Espera un momento." },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
+    );
+  }
+
   try {
     const { username, password } = await request.json();
 
@@ -15,24 +25,30 @@ export async function POST(request: Request) {
       );
     }
 
-    if (username.length < 3) {
+    if (username.length < 3 || username.length > 32) {
       return NextResponse.json(
-        { error: "El usuario debe tener al menos 3 caracteres" },
+        { error: "El usuario debe tener entre 3 y 32 caracteres" },
         { status: 400 }
       );
     }
 
-    if (password.length < 4) {
+    if (!/^[a-zA-Z0-9._-]+$/.test(username.trim())) {
       return NextResponse.json(
-        { error: "La contraseña debe tener al menos 4 caracteres" },
+        { error: "El usuario solo puede usar letras, números, punto, guion y guion bajo" },
+        { status: 400 }
+      );
+    }
+
+    if (password.length < 6) {
+      return NextResponse.json(
+        { error: "La contraseña debe tener al menos 6 caracteres" },
         { status: 400 }
       );
     }
 
     const db = await getDb();
-    const existing = db
-      .prepare("SELECT id FROM users WHERE username = ?")
-      .get(username.trim().toLowerCase());
+    const normalized = username.trim().toLowerCase();
+    const existing = db.prepare("SELECT id FROM users WHERE username = ?").get(normalized);
 
     if (existing) {
       return NextResponse.json(
@@ -47,11 +63,11 @@ export async function POST(request: Request) {
       .prepare(
         "INSERT INTO users (username, password_hash, stamp_token) VALUES (?, ?, ?)"
       )
-      .run(username.trim().toLowerCase(), passwordHash, stampToken);
+      .run(normalized, passwordHash, stampToken);
 
     await createSession({
       userId: Number(result.lastInsertRowid),
-      username: username.trim().toLowerCase(),
+      username: normalized,
     });
 
     return NextResponse.json({ success: true });

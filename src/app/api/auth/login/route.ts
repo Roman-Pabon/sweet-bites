@@ -2,8 +2,18 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { getDb, type User } from "@/lib/db";
 import { createSession } from "@/lib/auth";
+import { clientIp } from "@/lib/security";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const limited = rateLimit(`login:${clientIp(request)}`, 20, 10 * 60 * 1000);
+  if (!limited.ok) {
+    return NextResponse.json(
+      { error: "Demasiados intentos. Espera un momento." },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSec) } }
+    );
+  }
+
   try {
     const { username, password } = await request.json();
 

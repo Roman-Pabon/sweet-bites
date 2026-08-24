@@ -104,10 +104,10 @@ export function AuthForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={4}
+            minLength={mode === "register" ? 6 : 1}
             autoComplete={mode === "register" ? "new-password" : "current-password"}
             className="w-full rounded-xl border border-[var(--sweet-gold-dark)]/40 bg-white/60 px-4 py-3 text-[var(--sweet-navy)] outline-none transition-colors focus:border-[var(--sweet-navy)] focus:ring-2 focus:ring-[var(--sweet-navy)]/15"
-            placeholder="Tu contraseña"
+            placeholder={mode === "register" ? "Mínimo 6 caracteres" : "Tu contraseña"}
           />
         </div>
 

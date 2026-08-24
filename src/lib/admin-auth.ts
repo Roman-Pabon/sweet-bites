@@ -1,9 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-
-const SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "sweet-dev-secret-change-in-production"
-);
+import { getJwtSecretBytes } from "./security";
 
 const COOKIE_NAME = "sweet_admin_session";
 
@@ -17,7 +14,7 @@ export async function createAdminSession(payload: AdminSessionPayload) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("7d")
-    .sign(SECRET);
+    .sign(getJwtSecretBytes());
 
   const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
@@ -35,7 +32,7 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
   if (!token) return null;
 
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     return {
       adminId: payload.adminId as number,
       username: payload.username as string,
