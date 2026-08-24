@@ -1,13 +1,25 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 import { listRegisteredUsers } from "@/lib/stamps";
+import { safeAdminReturnPath } from "@/lib/admin-nav";
 import { AdminUsersPanel } from "@/components/AdminUsersPanel";
 import { SweetBitesLogo } from "@/components/SweetBitesLogo";
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>;
+}) {
   const admin = await getAdminSession();
+  const { from } = await searchParams;
+  const backHref = safeAdminReturnPath(from);
+
   if (!admin) {
-    redirect("/admin/login?redirect=/admin/users");
+    const redirectLogin =
+      backHref === "/admin"
+        ? "/admin/login?redirect=/admin/users"
+        : `/admin/login?redirect=${encodeURIComponent(`/admin/users?from=${encodeURIComponent(from || "")}`)}`;
+    redirect(redirectLogin);
   }
 
   const users = await listRegisteredUsers();
@@ -18,7 +30,11 @@ export default async function AdminUsersPage() {
         <SweetBitesLogo size="sm" />
         <p className="mt-3 text-sm text-[var(--sweet-navy)]/60">Sweet Bites — Admin</p>
       </div>
-      <AdminUsersPanel adminUsername={admin.username} initialUsers={users} />
+      <AdminUsersPanel
+        adminUsername={admin.username}
+        initialUsers={users}
+        backHref={backHref}
+      />
     </div>
   );
 }

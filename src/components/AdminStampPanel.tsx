@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TOTAL_STAMPS } from "@/lib/constants";
+import { AdminUsersNavButton } from "./AdminUsersNavButton";
 
 type CustomerInfo = {
   username: string;
@@ -50,6 +50,10 @@ export function AdminStampPanel({
       setCustomer(data.user);
       if (data.earnedReward) {
         setMessage("¡Premio desbloqueado! El cliente completó 10 sellos 🎉");
+      } else if (data.user.stamps === TOTAL_STAMPS - 1) {
+        setMessage(
+          `Sello marcado. Ahora tiene ${data.user.stamps} de ${TOTAL_STAMPS}. ¡Alista el premio!`
+        );
       } else {
         setMessage(`Sello marcado. Ahora tiene ${data.user.stamps} de ${TOTAL_STAMPS} galletas.`);
       }
@@ -131,12 +135,7 @@ export function AdminStampPanel({
   return (
     <div className="w-full max-w-sm">
       <div className="mb-6 flex items-center justify-between gap-3">
-        <Link
-          href="/admin/users"
-          className="rounded-full bg-[var(--sweet-navy)] px-3 py-1.5 text-xs font-semibold text-[var(--sweet-gold)]"
-        >
-          Usuarios
-        </Link>
+        <AdminUsersNavButton from={`/stamp/${token}`} />
         <button
           onClick={handleLogout}
           className="rounded-full px-3 py-1.5 text-xs font-medium text-[var(--sweet-navy)]/70 ring-1 ring-[var(--sweet-navy)]/20"

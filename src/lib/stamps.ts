@@ -1,5 +1,8 @@
+import fs from "fs";
+import path from "path";
 import { getDb, type User, toPublicUser } from "./db";
 import { TOTAL_STAMPS } from "./constants";
+import { getAvatarsDir } from "./paths";
 
 export { TOTAL_STAMPS };
 
@@ -121,4 +124,25 @@ export async function listRegisteredUsers() {
     rewards: row.rewards,
     avatarUrl: row.avatar_url,
   }));
+}
+
+export async function deleteRegisteredUser(userId: number) {
+  const db = await getDb();
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
+  if (!user) {
+    return { error: "Usuario no encontrado" as const };
+  }
+
+  db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+
+  const avatarsDir = getAvatarsDir();
+  for (const ext of ["jpg", "jpeg", "png", "webp", "gif"]) {
+    const filepath = path.join(avatarsDir, `${userId}.${ext}`);
+    if (fs.existsSync(filepath)) {
+      fs.unlinkSync(filepath);
+    }
+  }
+
+  return { ok: true as const, username: user.username };
 }
