@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TOTAL_STAMPS } from "@/lib/constants";
 
@@ -129,17 +130,23 @@ export function AdminStampPanel({
 
   return (
     <div className="w-full max-w-sm">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-[var(--sweet-navy)]/50">Admin</p>
-          <p className="font-semibold text-[var(--sweet-navy)]">{adminUsername}</p>
-        </div>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <Link
+          href="/admin/users"
+          className="rounded-full bg-[var(--sweet-navy)] px-3 py-1.5 text-xs font-semibold text-[var(--sweet-gold)]"
+        >
+          Usuarios
+        </Link>
         <button
           onClick={handleLogout}
           className="rounded-full px-3 py-1.5 text-xs font-medium text-[var(--sweet-navy)]/70 ring-1 ring-[var(--sweet-navy)]/20"
         >
           Salir
         </button>
+      </div>
+      <div className="mb-6">
+        <p className="text-xs uppercase tracking-wider text-[var(--sweet-navy)]/50">Admin</p>
+        <p className="font-semibold text-[var(--sweet-navy)]">{adminUsername}</p>
       </div>
 
       <div className="mb-6 rounded-2xl border-2 border-[var(--sweet-gold)] bg-[var(--sweet-navy)] p-6 text-center">

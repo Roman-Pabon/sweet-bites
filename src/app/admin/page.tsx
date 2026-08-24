@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/admin-auth";
 
@@ -8,8 +9,17 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col items-center justify-center bg-[var(--background)] px-6 py-12">
-      <div className="w-full max-w-sm text-center">
+    <div className="flex min-h-full flex-1 flex-col bg-[var(--background)] px-6 py-8">
+      <div className="mx-auto flex w-full max-w-sm items-center justify-between">
+        <Link
+          href="/admin/users"
+          className="rounded-full bg-[var(--sweet-navy)] px-4 py-2 text-sm font-semibold text-[var(--sweet-gold)]"
+        >
+          Usuarios
+        </Link>
+      </div>
+
+      <div className="mx-auto mt-10 w-full max-w-sm text-center">
         <h1 className="text-2xl font-bold text-[var(--sweet-navy)]">Hola, {admin.username}</h1>
         <p className="mt-3 text-[var(--sweet-navy)]/70">
           Escanea el QR de la tarjeta de un cliente para marcar sus galletas.

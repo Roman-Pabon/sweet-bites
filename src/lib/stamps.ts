@@ -99,3 +99,26 @@ export async function getUserByStampToken(token: string) {
   const db = await getDb();
   return db.prepare("SELECT * FROM users WHERE stamp_token = ?").get(token) as User | undefined;
 }
+
+export async function listRegisteredUsers() {
+  const db = await getDb();
+  const rows = db
+    .prepare(
+      "SELECT id, username, stamps, rewards, avatar_url FROM users ORDER BY lower(username) ASC"
+    )
+    .all() as {
+    id: number;
+    username: string;
+    stamps: number;
+    rewards: number;
+    avatar_url: string | null;
+  }[];
+
+  return rows.map((row) => ({
+    id: row.id,
+    username: row.username,
+    stamps: row.stamps,
+    rewards: row.rewards,
+    avatarUrl: row.avatar_url,
+  }));
+}
