@@ -75,7 +75,7 @@ En Railway → servicio → **Variables** → añade:
 | Variable | Valor |
 |----------|--------|
 | `NEXT_PUBLIC_APP_URL` | Tu URL de Railway, ej. `https://sweet-bites-production-xxxx.up.railway.app` |
-| `JWT_SECRET` | **Obligatorio.** Contraseña larga aleatoria (≥32 caracteres). Sin esto la app no arranca bien en producción. |
+| `JWT_SECRET` | Recomendado ≥32 caracteres aleatorios. Si lo **cambias**, todos tienen que volver a iniciar sesión (normal). Si no lo pones, la app usa un fallback para no romper el login. |
 | `DATA_DIR` | `/app/data` |
 | `SETUP_SECRET` | Solo para crear el primer admin. **Bórralo después.** |
 | `TELEGRAM_BOT_TOKEN` | (Opcional) Token del bot de Telegram para avisos 9/10 |
