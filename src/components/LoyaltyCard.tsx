@@ -68,7 +68,7 @@ export function LoyaltyCard({
             setPrizeFlash(false);
             setStamps(data.stamps);
             setRewards(data.rewards);
-          }, 4200);
+          }, 5600);
         } else if (data.stamps > prevStamps.current) {
           setNewStampIndex(data.stamps - 1);
           setRemainingPulse(true);
@@ -109,7 +109,7 @@ export function LoyaltyCard({
         </div>
 
         <div className="wallet-section wallet-section--stamps bg-[var(--sweet-gold-light)] px-4 py-5">
-          <div className="grid grid-cols-5 gap-3">
+          <div className={`grid grid-cols-5 gap-3 ${celebrating ? "stamps-celebrate" : ""}`}>
             {Array.from({ length: TOTAL_STAMPS }, (_, i) => (
               <div key={i} className="aspect-square p-0.5">
                 <StampIcon
@@ -169,47 +169,140 @@ export function LoyaltyCard({
   );
 }
 
-const BURST_PIECES = [
-  { x: -42, y: -88, rot: -28, delay: 0.05, color: "#E8D5A8", size: 8 },
-  { x: 18, y: -96, rot: 16, delay: 0.08, color: "#C89440", size: 6 },
-  { x: 48, y: -72, rot: 38, delay: 0.12, color: "#F2D898", size: 7 },
-  { x: -58, y: -54, rot: -42, delay: 0.16, color: "#3D2314", size: 5 },
-  { x: 62, y: -40, rot: 22, delay: 0.1, color: "#E8C878", size: 9 },
-  { x: -22, y: -78, rot: -8, delay: 0.2, color: "#F0E6C8", size: 6 },
-  { x: 36, y: -58, rot: 48, delay: 0.24, color: "#8B5A20", size: 5 },
-  { x: -70, y: -18, rot: -18, delay: 0.14, color: "#E8D5A8", size: 7 },
-  { x: 74, y: -8, rot: 30, delay: 0.18, color: "#C89440", size: 6 },
-  { x: -36, y: -36, rot: -52, delay: 0.28, color: "#F2D898", size: 8 },
-  { x: 8, y: -108, rot: 6, delay: 0.06, color: "#E8C878", size: 5 },
-  { x: 54, y: -92, rot: 24, delay: 0.22, color: "#3D2314", size: 4 },
-  { x: -80, y: -64, rot: -34, delay: 0.26, color: "#D4C090", size: 6 },
-  { x: 80, y: -52, rot: 44, delay: 0.3, color: "#F0E6C8", size: 7 },
-  { x: -12, y: -50, rot: 12, delay: 0.11, color: "#8B5A20", size: 5 },
-  { x: 28, y: -84, rot: -14, delay: 0.19, color: "#E8D5A8", size: 8 },
+const FEST_COLORS = [
+  "#FF4D6D",
+  "#FF8FA3",
+  "#FFD60A",
+  "#FF9F1C",
+  "#2EC4B6",
+  "#4CC9F0",
+  "#7B2CBF",
+  "#F72585",
+  "#80ED99",
+  "#F8F9FA",
+  "#E8D5A8",
+  "#C77DFF",
+  "#00BBF9",
+  "#F94144",
 ];
 
+const CONFETTI_SHAPES = ["rect", "circle", "ribbon", "star", "diamond"] as const;
+const FLOATERS = ["🍪", "🎉", "✨", "⭐", "🎊", "💛", "🍟"];
+
 function PrizeBurst() {
+  const confetti = Array.from({ length: 56 }, (_, i) => ({
+    left: `${(i * 17 + 9) % 100}%`,
+    delay: `${(i % 28) * 0.11}s`,
+    duration: `${2.1 + (i % 6) * 0.28}s`,
+    color: FEST_COLORS[i % FEST_COLORS.length],
+    size: `${7 + (i % 9) * 1.6}px`,
+    rot: `${(i * 41) % 360}deg`,
+    drift: `${((i % 9) - 4) * 22}px`,
+    shape: CONFETTI_SHAPES[i % CONFETTI_SHAPES.length],
+  }));
+
+  const bursts = Array.from({ length: 32 }, (_, i) => {
+    const angle = (i / 32) * Math.PI * 2;
+    const dist = 110 + (i % 6) * 28;
+    return {
+      x: `${Math.cos(angle) * dist}px`,
+      y: `${Math.sin(angle) * dist}px`,
+      delay: `${0.04 + (i % 8) * 0.035}s`,
+      color: FEST_COLORS[(i + 3) % FEST_COLORS.length],
+      size: `${6 + (i % 7) * 2}px`,
+      rot: `${(i * 23) % 360}deg`,
+      shape: CONFETTI_SHAPES[(i + 2) % CONFETTI_SHAPES.length],
+    };
+  });
+
+  const sparkles = Array.from({ length: 18 }, (_, i) => ({
+    left: `${8 + ((i * 29) % 84)}%`,
+    top: `${10 + ((i * 37) % 72)}%`,
+    delay: `${0.2 + (i % 9) * 0.12}s`,
+    size: `${10 + (i % 5) * 6}px`,
+  }));
+
   return (
-    <div className="prize-burst" aria-hidden="true">
-      {BURST_PIECES.map((piece, i) => (
+    <div className="prize-fest" aria-hidden="true">
+      <div className="prize-fest-vignette" />
+      <div className="prize-fest-flash" />
+      <div className="prize-fest-rings">
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+
+      {confetti.map((piece, i) => (
         <span
-          key={i}
-          className="prize-burst-piece"
+          key={`c-${i}`}
+          className={`prize-fest-confetti prize-fest-shape--${piece.shape}`}
           style={
             {
-              "--burst-x": `${piece.x}px`,
-              "--burst-y": `${piece.y}px`,
-              "--burst-rot": `${piece.rot}deg`,
-              "--burst-delay": `${piece.delay}s`,
-              "--burst-size": `${piece.size}px`,
-              "--burst-color": piece.color,
+              left: piece.left,
+              "--fest-delay": piece.delay,
+              "--fest-duration": piece.duration,
+              "--fest-color": piece.color,
+              "--fest-size": piece.size,
+              "--fest-rot": piece.rot,
+              "--fest-drift": piece.drift,
             } as CSSProperties
           }
         />
       ))}
-      <div className="prize-burst-banner">
-        <p className="prize-burst-title">¡Premio!</p>
-        <p className="prize-burst-sub">Sweet fries gratis</p>
+
+      {bursts.map((piece, i) => (
+        <span
+          key={`b-${i}`}
+          className={`prize-fest-burst prize-fest-shape--${piece.shape}`}
+          style={
+            {
+              "--burst-x": piece.x,
+              "--burst-y": piece.y,
+              "--burst-delay": piece.delay,
+              "--burst-color": piece.color,
+              "--burst-size": piece.size,
+              "--burst-rot": piece.rot,
+            } as CSSProperties
+          }
+        />
+      ))}
+
+      {sparkles.map((sparkle, i) => (
+        <span
+          key={`s-${i}`}
+          className="prize-fest-sparkle"
+          style={
+            {
+              left: sparkle.left,
+              top: sparkle.top,
+              "--spark-delay": sparkle.delay,
+              "--spark-size": sparkle.size,
+            } as CSSProperties
+          }
+        />
+      ))}
+
+      {FLOATERS.map((emoji, i) => (
+        <span
+          key={`e-${i}`}
+          className="prize-fest-floater"
+          style={
+            {
+              "--float-delay": `${0.15 + i * 0.14}s`,
+              "--float-x": `${-42 + i * 14}%`,
+              "--float-rot": `${i % 2 === 0 ? -18 : 16}deg`,
+            } as CSSProperties
+          }
+        >
+          {emoji}
+        </span>
+      ))}
+
+      <div className="prize-fest-banner">
+        <p className="prize-fest-kicker">10 / 10 sellos</p>
+        <p className="prize-fest-title">¡Premio!</p>
+        <p className="prize-fest-sub">Sweet fries gratis</p>
       </div>
     </div>
   );

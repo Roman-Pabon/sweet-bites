@@ -50,10 +50,11 @@ body {
 }
 
 .wallet-card--celebrate {
-  animation: wallet-card-celebrate 0.9s cubic-bezier(0.34, 1.4, 0.64, 1) 1.05s both;
+  animation: wallet-card-celebrate 1.35s cubic-bezier(0.34, 1.4, 0.64, 1) 0.15s both;
   box-shadow:
-    0 0 0 2px var(--sweet-gold),
-    0 8px 28px rgba(232, 213, 168, 0.45),
+    0 0 0 3px #ffd60a,
+    0 0 28px rgba(247, 37, 133, 0.45),
+    0 0 48px rgba(76, 201, 240, 0.35),
     0 20px 50px rgba(30, 36, 48, 0.18);
 }
 
@@ -130,59 +131,212 @@ body {
   animation: stamp-prize-flash 0.6s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 }
 
-.prize-burst {
+.prize-fest {
   pointer-events: none;
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 8;
+  z-index: 60;
   overflow: hidden;
 }
 
-.prize-burst-piece {
+.prize-fest-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(255, 214, 10, 0.28), transparent 42%),
+    radial-gradient(circle at 18% 18%, rgba(247, 37, 133, 0.22), transparent 36%),
+    radial-gradient(circle at 82% 22%, rgba(76, 201, 240, 0.22), transparent 34%),
+    radial-gradient(circle at 50% 100%, rgba(123, 44, 191, 0.18), transparent 40%);
+  animation: prize-fest-vignette 1.2s ease both;
+}
+
+.prize-fest-flash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.72), transparent 55%);
+  animation: prize-fest-flash 0.7s ease both;
+}
+
+.prize-fest-rings {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+}
+
+.prize-fest-rings span {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid #ffd60a;
+  opacity: 0;
+  animation: prize-fest-ring 1.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.prize-fest-rings span:nth-child(1) {
+  border-color: #ff4d6d;
+  animation-delay: 0.05s;
+}
+
+.prize-fest-rings span:nth-child(2) {
+  border-color: #4cc9f0;
+  animation-delay: 0.18s;
+}
+
+.prize-fest-rings span:nth-child(3) {
+  border-color: #ffd60a;
+  animation-delay: 0.32s;
+}
+
+.prize-fest-rings span:nth-child(4) {
+  border-color: #80ed99;
+  animation-delay: 0.46s;
+}
+
+.prize-fest-confetti {
+  position: absolute;
+  top: -8%;
+  width: var(--fest-size);
+  height: calc(var(--fest-size) * 1.45);
+  background: var(--fest-color);
+  opacity: 0;
+  animation: prize-fest-fall var(--fest-duration) cubic-bezier(0.22, 0.7, 0.36, 1) var(--fest-delay) both;
+}
+
+.prize-fest-burst {
   position: absolute;
   top: 42%;
   left: 50%;
   width: var(--burst-size);
   height: var(--burst-size);
   margin-left: calc(var(--burst-size) / -2);
-  border-radius: 2px;
   background: var(--burst-color);
   opacity: 0;
-  animation: prize-burst-fly 1.15s cubic-bezier(0.22, 1, 0.36, 1) calc(1.05s + var(--burst-delay)) both;
+  animation: prize-fest-burst 1.35s cubic-bezier(0.22, 1, 0.36, 1) var(--burst-delay) both;
 }
 
-.prize-burst-piece:nth-child(odd) {
+.prize-fest-shape--circle {
   border-radius: 50%;
+  height: var(--fest-size, var(--burst-size));
 }
 
-.prize-burst-banner {
+.prize-fest-shape--rect {
+  border-radius: 2px;
+}
+
+.prize-fest-shape--ribbon {
+  width: calc(var(--fest-size, var(--burst-size)) * 0.45);
+  height: calc(var(--fest-size, var(--burst-size)) * 2.4);
+  border-radius: 999px;
+}
+
+.prize-fest-shape--diamond {
+  border-radius: 2px;
+  transform-origin: center;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.prize-fest-shape--star {
+  background: transparent;
+  clip-path: polygon(
+    50% 0%,
+    61% 35%,
+    98% 35%,
+    68% 57%,
+    79% 91%,
+    50% 70%,
+    21% 91%,
+    32% 57%,
+    2% 35%,
+    39% 35%
+  );
+  background: var(--fest-color, var(--burst-color));
+}
+
+.prize-fest-sparkle {
+  position: absolute;
+  width: var(--spark-size);
+  height: var(--spark-size);
+  margin-left: calc(var(--spark-size) / -2);
+  background: radial-gradient(circle, #fff 0 18%, transparent 19%),
+    linear-gradient(#fff, #fff) center / 18% 100% no-repeat,
+    linear-gradient(#fff, #fff) center / 100% 18% no-repeat;
+  filter: drop-shadow(0 0 6px #ffd60a);
+  opacity: 0;
+  animation: prize-fest-sparkle 1.1s ease-in-out var(--spark-delay) both;
+}
+
+.prize-fest-floater {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  font-size: 1.7rem;
+  opacity: 0;
+  animation: prize-fest-float 1.8s cubic-bezier(0.22, 1, 0.36, 1) var(--float-delay) both;
+}
+
+.prize-fest-banner {
   position: absolute;
   top: 38%;
   left: 50%;
-  width: 82%;
+  width: min(88vw, 340px);
   transform: translate(-50%, -50%);
-  border-radius: 16px;
-  border: 1.5px solid var(--sweet-gold);
-  background: rgba(30, 36, 48, 0.92);
-  padding: 0.85rem 1rem;
+  border-radius: 22px;
+  padding: 1.15rem 1.2rem 1.2rem;
   text-align: center;
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
-  animation: prize-burst-banner-in 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) 1.15s both;
+  background:
+    linear-gradient(180deg, rgba(30, 36, 48, 0.96), rgba(30, 36, 48, 0.92));
+  box-shadow:
+    0 0 0 3px #ffd60a,
+    0 0 0 7px rgba(247, 37, 133, 0.55),
+    0 18px 40px rgba(0, 0, 0, 0.38);
+  animation: prize-fest-banner 0.7s cubic-bezier(0.34, 1.45, 0.64, 1) 0.28s both;
 }
 
-.prize-burst-title {
-  font-size: 1.35rem;
+.prize-fest-kicker {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #80ed99;
+}
+
+.prize-fest-title {
+  margin-top: 0.15rem;
+  font-size: 2.15rem;
   font-weight: 800;
   letter-spacing: 0.02em;
-  color: var(--sweet-gold);
+  background: linear-gradient(90deg, #ff4d6d, #ffd60a, #4cc9f0, #80ed99, #ff4d6d);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: prize-fest-title-shine 1.8s linear 0.4s both;
 }
 
-.prize-burst-sub {
-  margin-top: 0.15rem;
-  font-size: 0.85rem;
-  font-weight: 600;
+.prize-fest-sub {
+  margin-top: 0.2rem;
+  font-size: 1rem;
+  font-weight: 700;
   color: var(--sweet-gold-light);
 }
+
+.stamps-celebrate .stamp-cookie {
+  animation: stamp-celebrate-wave 0.7s cubic-bezier(0.34, 1.5, 0.64, 1) both;
+}
+
+.stamps-celebrate .aspect-square:nth-child(1) .stamp-cookie { animation-delay: 0.05s; }
+.stamps-celebrate .aspect-square:nth-child(2) .stamp-cookie { animation-delay: 0.1s; }
+.stamps-celebrate .aspect-square:nth-child(3) .stamp-cookie { animation-delay: 0.15s; }
+.stamps-celebrate .aspect-square:nth-child(4) .stamp-cookie { animation-delay: 0.2s; }
+.stamps-celebrate .aspect-square:nth-child(5) .stamp-cookie { animation-delay: 0.25s; }
+.stamps-celebrate .aspect-square:nth-child(6) .stamp-cookie { animation-delay: 0.3s; }
+.stamps-celebrate .aspect-square:nth-child(7) .stamp-cookie { animation-delay: 0.35s; }
+.stamps-celebrate .aspect-square:nth-child(8) .stamp-cookie { animation-delay: 0.4s; }
+.stamps-celebrate .aspect-square:nth-child(9) .stamp-cookie { animation-delay: 0.45s; }
+.stamps-celebrate .aspect-square:nth-child(10) .stamp-cookie { animation-delay: 0.5s; }
 
 @keyframes cookie-bite-shake {
   0% {
@@ -268,38 +422,144 @@ body {
 
 @keyframes wallet-card-celebrate {
   0% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
   }
-  40% {
-    transform: scale(1.03);
+  18% {
+    transform: scale(1.045) rotate(-1.2deg);
+  }
+  36% {
+    transform: scale(1.02) rotate(1deg);
+  }
+  54% {
+    transform: scale(1.04) rotate(-0.6deg);
   }
   100% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
   }
 }
 
-@keyframes prize-burst-fly {
+@keyframes prize-fest-vignette {
   0% {
     opacity: 0;
-    transform: translate(0, 0) scale(0.4) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes prize-fest-flash {
+  0% {
+    opacity: 0;
   }
   18% {
     opacity: 1;
   }
   100% {
     opacity: 0;
-    transform: translate(var(--burst-x), var(--burst-y)) scale(1) rotate(var(--burst-rot));
   }
 }
 
-@keyframes prize-burst-banner-in {
+@keyframes prize-fest-ring {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(14);
+  }
+}
+
+@keyframes prize-fest-fall {
   0% {
     opacity: 0;
-    transform: translate(-50%, -40%) scale(0.82);
+    transform: translate3d(0, -12vh, 0) rotate(0deg) scale(0.6);
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--fest-drift), 108vh, 0) rotate(var(--fest-rot)) scale(1);
+  }
+}
+
+@keyframes prize-fest-burst {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.3) rotate(0deg);
+  }
+  16% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--burst-x), var(--burst-y)) scale(1.15) rotate(var(--burst-rot));
+  }
+}
+
+@keyframes prize-fest-sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4) rotate(0deg);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.25) rotate(18deg);
+  }
+}
+
+@keyframes prize-fest-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 20px) scale(0.4) rotate(0deg);
+  }
+  22% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--float-x)), -18px) scale(1.15) rotate(var(--float-rot));
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--float-x)), -140px) scale(0.85) rotate(calc(var(--float-rot) * 1.6));
+  }
+}
+
+@keyframes prize-fest-banner {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -32%) scale(0.62) rotate(-4deg);
+  }
+  62% {
+    transform: translate(-50%, -52%) scale(1.06) rotate(1.4deg);
   }
   100% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes prize-fest-title-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 180% 50%;
+  }
+}
+
+@keyframes stamp-celebrate-wave {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  45% {
+    transform: scale(1.22) rotate(-8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
   }
 }
 
@@ -385,15 +645,32 @@ body {
   .stamp-prize-flash,
   .wallet-prize,
   .wallet-card--celebrate,
-  .prize-burst-piece,
-  .prize-burst-banner {
+  .prize-fest-confetti,
+  .prize-fest-burst,
+  .prize-fest-sparkle,
+  .prize-fest-floater,
+  .prize-fest-banner,
+  .prize-fest-flash,
+  .prize-fest-vignette,
+  .prize-fest-rings span,
+  .stamps-celebrate .stamp-cookie {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
   }
 
-  .prize-burst-banner {
+  .prize-fest-banner {
     transform: translate(-50%, -50%) !important;
+  }
+
+  .prize-fest-flash,
+  .prize-fest-vignette,
+  .prize-fest-confetti,
+  .prize-fest-burst,
+  .prize-fest-sparkle,
+  .prize-fest-floater,
+  .prize-fest-rings {
+    display: none;
   }
 }
 
