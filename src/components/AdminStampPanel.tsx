@@ -58,12 +58,40 @@ export function AdminStampPanel({
     }
   }
 
+  async function handleRedeem() {
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/admin/redeem", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "No se pudo reiniciar la tarjeta");
+        return;
+      }
+
+      setCustomer(data.user);
+      setMessage("Premio entregado. La tarjeta quedó en 0 sellos.");
+    } catch {
+      setError("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleLogout() {
     await fetch("/api/admin/logout", { method: "POST" });
     router.refresh();
   }
 
   const stampsRemaining = Math.max(0, TOTAL_STAMPS - customer.stamps);
+  const cardComplete = customer.stamps >= TOTAL_STAMPS;
 
   return (
     <div className="w-full max-w-sm">
@@ -96,7 +124,9 @@ export function AdminStampPanel({
           </div>
         </div>
         <p className="mt-3 text-sm text-[var(--sweet-gold)]/80">
-          Faltan {stampsRemaining} {stampsRemaining === 1 ? "galleta" : "galletas"}
+          {cardComplete
+            ? "Tarjeta completa. Entrega el premio en físico."
+            : `Faltan ${stampsRemaining} ${stampsRemaining === 1 ? "galleta" : "galletas"}`}
         </p>
       </div>
 
@@ -109,16 +139,25 @@ export function AdminStampPanel({
 
       <button
         onClick={handleStamp}
-        disabled={loading || customer.stamps >= TOTAL_STAMPS}
+        disabled={loading || cardComplete}
         className="flex w-full min-h-[56px] items-center justify-center gap-2 rounded-2xl bg-[var(--sweet-gold)] px-4 py-4 text-lg font-bold text-[var(--sweet-navy)] shadow-lg active:scale-[0.98] disabled:opacity-50"
       >
         {loading ? "Marcando..." : "🍪 Marcar galleta"}
       </button>
 
-      {customer.stamps >= TOTAL_STAMPS && (
-        <p className="mt-3 text-center text-sm text-[var(--sweet-navy)]/60">
-          Tarjeta completa. Canjea el premio antes de seguir marcando.
-        </p>
+      {cardComplete && (
+        <>
+          <p className="mt-3 text-center text-sm text-[var(--sweet-navy)]/60">
+            Entrega el premio en físico y luego reinicia la tarjeta.
+          </p>
+          <button
+            onClick={handleRedeem}
+            disabled={loading || customer.rewards < 1}
+            className="mt-3 flex w-full min-h-[56px] items-center justify-center gap-2 rounded-2xl bg-[var(--sweet-navy)] px-4 py-4 text-lg font-bold text-[var(--sweet-gold)] shadow-lg ring-2 ring-[var(--sweet-gold)] active:scale-[0.98] disabled:opacity-50"
+          >
+            {loading ? "Reiniciando..." : "Reiniciar tarjeta"}
+          </button>
+        </>
       )}
     </div>
   );

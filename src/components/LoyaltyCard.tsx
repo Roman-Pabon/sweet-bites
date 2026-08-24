@@ -27,6 +27,7 @@ export function LoyaltyCard({
   const [celebrating, setCelebrating] = useState(false);
   const prevStamps = useRef(initialStamps);
   const prevRewards = useRef(initialRewards);
+  const latestRef = useRef({ stamps: initialStamps, rewards: initialRewards });
   const celebratingRef = useRef(false);
 
   useEffect(() => {
@@ -40,13 +41,15 @@ export function LoyaltyCard({
           rewards: number;
         };
 
+        latestRef.current = data;
+
+        // Durante el festejo no tocamos la UI; al terminar aplicamos el estado real.
         if (celebratingRef.current) {
-          prevStamps.current = data.stamps;
-          prevRewards.current = data.rewards;
           return;
         }
 
-        const earnedPrize = data.rewards > prevRewards.current;
+        const earnedPrize =
+          data.rewards > prevRewards.current && data.stamps >= TOTAL_STAMPS;
 
         if (earnedPrize) {
           celebratingRef.current = true;
@@ -54,8 +57,10 @@ export function LoyaltyCard({
           setPrizeFlash(true);
           setNewStampIndex(TOTAL_STAMPS - 1);
           setRemainingPulse(true);
-          setStamps(TOTAL_STAMPS);
+          setStamps(data.stamps);
           setRewards(data.rewards);
+          prevStamps.current = data.stamps;
+          prevRewards.current = data.rewards;
 
           setTimeout(() => {
             setNewStampIndex(null);
@@ -66,8 +71,10 @@ export function LoyaltyCard({
             celebratingRef.current = false;
             setCelebrating(false);
             setPrizeFlash(false);
-            setStamps(data.stamps);
-            setRewards(data.rewards);
+            setStamps(latestRef.current.stamps);
+            setRewards(latestRef.current.rewards);
+            prevStamps.current = latestRef.current.stamps;
+            prevRewards.current = latestRef.current.rewards;
           }, 5600);
         } else if (data.stamps > prevStamps.current) {
           setNewStampIndex(data.stamps - 1);
@@ -78,13 +85,14 @@ export function LoyaltyCard({
           }, 1800);
           setStamps(data.stamps);
           setRewards(data.rewards);
+          prevStamps.current = data.stamps;
+          prevRewards.current = data.rewards;
         } else {
           setStamps(data.stamps);
           setRewards(data.rewards);
+          prevStamps.current = data.stamps;
+          prevRewards.current = data.rewards;
         }
-
-        prevStamps.current = data.stamps;
-        prevRewards.current = data.rewards;
       } catch {
         // ignore polling errors
       }
@@ -125,7 +133,7 @@ export function LoyaltyCard({
         <div className="wallet-section wallet-section--stats grid grid-cols-2 gap-4 bg-[var(--sweet-navy)] px-6 py-5">
           <div>
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--sweet-gold)]/75">
-              Te faltan...
+              {stampsRemaining === 0 ? "Estado" : "Te faltan..."}
             </p>
             <p
               className={`text-xl font-bold text-[var(--sweet-gold)] ${
@@ -133,7 +141,9 @@ export function LoyaltyCard({
               }`}
               key={stampsRemaining}
             >
-              {stampsRemaining} {stampsRemaining === 1 ? "sello" : "sellos"}
+              {stampsRemaining === 0
+                ? "Completa"
+                : `${stampsRemaining} ${stampsRemaining === 1 ? "sello" : "sellos"}`}
             </p>
             {remainingPulse && stampsRemaining > 0 && (
               <p className="mt-1 text-xs font-medium text-[var(--sweet-gold)]/90 animate-[wallet-section-reveal_0.4s_ease_both]">
@@ -153,13 +163,12 @@ export function LoyaltyCard({
 
         <div className="wallet-section wallet-section--barcode bg-[var(--sweet-navy)] px-6 pb-6 pt-2">
           <StampQR stampUrl={stampUrl} />
-          {prizeFlash && (
-            <p className="mt-3 text-center text-sm font-semibold text-[var(--sweet-gold)] stamp-prize-flash">
-              ¡Completaste 10 sellos! Canjea tus Sweet fries 🎉
-            </p>
-          )}
-          {!prizeFlash && rewards > 0 && (
-            <p className="mt-3 text-center text-sm font-semibold text-[var(--sweet-gold)] wallet-prize">
+          {rewards > 0 && (
+            <p
+              className={`mt-3 text-center text-sm font-semibold text-[var(--sweet-gold)] ${
+                prizeFlash ? "stamp-prize-flash" : "wallet-prize"
+              }`}
+            >
               ¡Tienes {rewards} {rewards === 1 ? "premio" : "premios"} para canjear! 🎉
             </p>
           )}

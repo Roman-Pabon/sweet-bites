@@ -12,7 +12,9 @@ export async function addStampToUser(userId: number) {
   }
 
   if (user.stamps >= TOTAL_STAMPS) {
-    return { error: "Este cliente ya completó sus 10 sellos. Canjea el premio antes de seguir." as const };
+    return {
+      error: "Este cliente ya completó sus 10 sellos. Entrega el premio y reinicia la tarjeta antes de seguir." as const,
+    };
   }
 
   let stamps = user.stamps + 1;
@@ -21,7 +23,6 @@ export async function addStampToUser(userId: number) {
 
   if (stamps >= TOTAL_STAMPS) {
     rewards += 1;
-    stamps = 0;
     earnedReward = true;
   }
 
@@ -33,6 +34,33 @@ export async function addStampToUser(userId: number) {
     user: toPublicUser(updated),
     earnedReward,
   };
+}
+
+export async function redeemPrizeAndResetCard(userId: number) {
+  const db = await getDb();
+
+  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User | undefined;
+  if (!user) {
+    return { error: "Usuario no encontrado" as const };
+  }
+
+  if (user.stamps < TOTAL_STAMPS) {
+    return { error: "La tarjeta aún no está completa" as const };
+  }
+
+  if (user.rewards < 1) {
+    return { error: "Este cliente no tiene un premio para canjear" as const };
+  }
+
+  db.prepare("UPDATE users SET stamps = ?, rewards = ? WHERE id = ?").run(
+    0,
+    user.rewards - 1,
+    userId
+  );
+
+  const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
+
+  return { user: toPublicUser(updated) };
 }
 
 export async function getUserByStampToken(token: string) {
