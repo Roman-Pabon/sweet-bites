@@ -89,15 +89,8 @@ export async function redeemPrizeAndResetCard(userId: number) {
     return { error: "La tarjeta aún no está completa" as const };
   }
 
-  if (user.rewards < 1) {
-    return { error: "Este cliente no tiene un premio para canjear" as const };
-  }
-
-  db.prepare("UPDATE users SET stamps = ?, rewards = ? WHERE id = ?").run(
-    0,
-    user.rewards - 1,
-    userId
-  );
+  // Solo reinicia sellos. El contador de premios es acumulativo y no se resta.
+  db.prepare("UPDATE users SET stamps = ? WHERE id = ?").run(0, userId);
 
   const updated = db.prepare("SELECT * FROM users WHERE id = ?").get(userId) as User;
 

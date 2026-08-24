@@ -163,13 +163,13 @@ export function LoyaltyCard({
 
         <div className="wallet-section wallet-section--barcode bg-[var(--sweet-navy)] px-6 pb-6 pt-2">
           <StampQR stampUrl={stampUrl} />
-          {rewards > 0 && (
+          {stamps >= TOTAL_STAMPS && (
             <p
               className={`mt-3 text-center text-sm font-semibold text-[var(--sweet-gold)] ${
                 prizeFlash ? "stamp-prize-flash" : "wallet-prize"
               }`}
             >
-              ¡Tienes {rewards} {rewards === 1 ? "premio" : "premios"} para canjear! 🎉
+              ¡Tienes 1 premio para canjear! 🎉
             </p>
           )}
         </div>

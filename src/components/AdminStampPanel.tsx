@@ -200,7 +200,7 @@ export function AdminStampPanel({
           </p>
           <button
             onClick={handleRedeem}
-            disabled={loading || customer.rewards < 1}
+            disabled={loading}
             className="mt-3 flex w-full min-h-[56px] items-center justify-center gap-2 rounded-2xl bg-[var(--sweet-navy)] px-4 py-4 text-lg font-bold text-[var(--sweet-gold)] shadow-lg ring-2 ring-[var(--sweet-gold)] active:scale-[0.98] disabled:opacity-50"
           >
             {loadingAction === "redeem" ? "Reiniciando..." : "Reiniciar tarjeta"}
