@@ -20,7 +20,7 @@ export function SweetBitesLogo({ size = "md", className = "" }: SweetBitesLogoPr
       alt="Sweet Bites"
       width={px}
       height={px}
-      className={`mx-auto shrink-0 ${className}`}
+      className={`mx-auto block shrink-0 ${className}`}
       sizes={`${px}px`}
       priority
     />

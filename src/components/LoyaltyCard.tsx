@@ -72,7 +72,7 @@ export function LoyaltyCard({
     <div className="wallet-scene w-full max-w-[380px]">
       <div className="wallet-card">
         <div className="wallet-section wallet-section--header bg-[var(--sweet-navy)] px-6 py-8 text-center">
-          <div className="wallet-logo">
+          <div className="wallet-logo mx-auto">
             <SweetBitesLogo size="lg" />
           </div>
           <p className="mt-3 text-sm text-[var(--sweet-gold)]/85">Hola, {username}</p>
@@ -113,7 +113,7 @@ export function LoyaltyCard({
           </div>
           <div className="text-right">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--sweet-gold)]/75">
-              Bubble tea grátis
+              Sweet fries gratis
             </p>
             <p className="text-xl font-bold text-[var(--sweet-gold)]">
               {rewards} {rewards === 1 ? "premio" : "premios"}
@@ -125,7 +125,7 @@ export function LoyaltyCard({
           <StampQR stampUrl={stampUrl} />
           {prizeFlash && (
             <p className="mt-3 text-center text-sm font-semibold text-[var(--sweet-gold)] stamp-prize-flash">
-              ¡Completaste 10 sellos! Canjea tu bubble tea 🎉
+              ¡Completaste 10 sellos! Canjea tus Sweet fries 🎉
             </p>
           )}
           {!prizeFlash && rewards > 0 && (

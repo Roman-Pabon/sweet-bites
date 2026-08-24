@@ -44,7 +44,7 @@ export default async function CardPage() {
           stampUrl={stampUrl}
         />
         <p className="mt-6 max-w-[380px] animate-[wallet-section-reveal_0.5s_cubic-bezier(0.22,1,0.36,1)_0.65s_both] text-center text-sm text-[var(--sweet-navy)]/60">
-          Muestra esta tarjeta en la tienda para acumular sellos y canjear tu bubble tea grátis.
+          Muestra esta tarjeta al comprar una galleta.
         </p>
       </div>
     </div>
