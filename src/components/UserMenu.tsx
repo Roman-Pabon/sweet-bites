@@ -24,6 +24,7 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [photoStep, setPhotoStep] = useState(false);
+  const [viewingAvatar, setViewingAvatar] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
   const [uploading, setUploading] = useState(false);
@@ -34,17 +35,22 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
   }, []);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open && !viewingAvatar) return;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
     };
-  }, [open]);
+  }, [open, viewingAvatar]);
 
   function closeMenu() {
     setOpen(false);
     setPhotoStep(false);
+    setViewingAvatar(false);
     setError("");
+  }
+
+  function closeAvatarPreview() {
+    setViewingAvatar(false);
   }
 
   async function handleLogout() {
@@ -100,7 +106,16 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
         <div className="mx-auto mb-5 h-1 w-10 rounded-full bg-[var(--sweet-navy)]/20" />
 
         <div className="mb-6 flex items-center gap-4">
-          <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--sweet-gold-dark)] bg-[var(--sweet-navy)]">
+          <button
+            type="button"
+            onClick={() => {
+              if (avatarUrl) setViewingAvatar(true);
+            }}
+            aria-label={avatarUrl ? "Ver foto de perfil" : "Sin foto de perfil"}
+            className={`relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-[var(--sweet-gold-dark)] bg-[var(--sweet-navy)] ${
+              avatarUrl ? "active:scale-95" : ""
+            }`}
+          >
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
@@ -115,10 +130,12 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
                 {username.charAt(0).toUpperCase()}
               </span>
             )}
-          </div>
+          </button>
           <div className="min-w-0 flex-1">
             <p className="truncate text-lg font-bold text-[var(--sweet-navy)]">{username}</p>
-            <p className="text-sm text-[var(--sweet-navy)]/60">Mi cuenta</p>
+            <p className="text-sm text-[var(--sweet-navy)]/60">
+              {avatarUrl ? "Toca la foto para verla" : "Mi cuenta"}
+            </p>
           </div>
         </div>
 
@@ -235,6 +252,39 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
     </div>
   ) : null;
 
+  const avatarPreview =
+    viewingAvatar && avatarUrl ? (
+      <div className="fixed inset-0 z-[10000] flex flex-col items-center justify-center bg-black/92 px-6">
+        <button
+          type="button"
+          aria-label="Cerrar foto"
+          className="absolute inset-0"
+          onClick={closeAvatarPreview}
+        />
+        <div className="relative z-10 flex w-full max-w-sm flex-col items-center gap-5">
+          <p className="text-sm font-semibold text-white/80">{username}</p>
+          <div className="relative aspect-square w-[min(78vw,320px)] overflow-hidden rounded-full border-4 border-white/25 shadow-2xl">
+            <Image
+              src={avatarUrl}
+              alt={`Foto de perfil de ${username}`}
+              fill
+              className="object-cover"
+              sizes="320px"
+              unoptimized
+              priority
+            />
+          </div>
+          <button
+            type="button"
+            onClick={closeAvatarPreview}
+            className="rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm active:bg-white/25"
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <>
       <button
@@ -258,6 +308,7 @@ export function UserMenu({ username, avatarUrl: initialAvatarUrl }: UserMenuProp
       </button>
 
       {mounted && menu && createPortal(menu, document.body)}
+      {mounted && avatarPreview && createPortal(avatarPreview, document.body)}
     </>
   );
 }
