@@ -10,7 +10,7 @@ const montserrat = Montserrat({
 
 export const metadata: Metadata = {
   title: "Sweet Bites — Tarjeta de Fidelidad",
-  description: "Acumula sellos y gana Sweet fries gratis",
+  description: "Acumula sellos y gana Mini bites gratis",
 };
 
 export const viewport: Viewport = {

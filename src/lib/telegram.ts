@@ -66,7 +66,7 @@ export async function sendTelegramMessage(text: string) {
 export async function notifyStampMilestone(username: string, stamps: number) {
   if (stamps === TOTAL_STAMPS - 1) {
     return sendTelegramMessage(
-      `🍪 Sweet Bites\n${username} lleva ${stamps}/${TOTAL_STAMPS}.\nAlista el premio (Sweet fries).`
+      `🍪 Sweet Bites\n${username} lleva ${stamps}/${TOTAL_STAMPS}.\nAlista el premio (Mini bites).`
     );
   }
 

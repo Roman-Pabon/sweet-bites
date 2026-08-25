@@ -153,7 +153,7 @@ export function LoyaltyCard({
           </div>
           <div className="text-right">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--sweet-gold)]/75">
-              Sweet fries gratis
+              Mini bites gratis
             </p>
             <p className="text-xl font-bold text-[var(--sweet-gold)]">
               {rewards} {rewards === 1 ? "premio" : "premios"}
@@ -311,7 +311,7 @@ function PrizeBurst() {
       <div className="prize-fest-banner">
         <p className="prize-fest-kicker">10 / 10 sellos</p>
         <p className="prize-fest-title">¡Premio!</p>
-        <p className="prize-fest-sub">Sweet fries gratis</p>
+        <p className="prize-fest-sub">Mini bites gratis</p>
       </div>
     </div>
   );
